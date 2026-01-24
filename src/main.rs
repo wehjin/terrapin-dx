@@ -3,14 +3,16 @@ use dioxus::prelude::*;
 use views::{Home, Navbar};
 
 mod components;
+pub mod server;
 mod views;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 enum Route {
     #[layout(Navbar)]
-        #[route("/")]
-        Home {},
+
+    #[route("/")]
+    Home {},
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");

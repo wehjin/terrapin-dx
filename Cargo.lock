@@ -4653,6 +4653,7 @@ name = "terrapin-dx"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "serde",
 ]
 
 [[package]]
