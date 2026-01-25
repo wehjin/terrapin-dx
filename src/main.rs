@@ -3,6 +3,8 @@ use dioxus::prelude::*;
 use views::{Home, Navbar};
 
 mod components;
+pub mod data;
+
 pub mod server;
 mod views;
 
