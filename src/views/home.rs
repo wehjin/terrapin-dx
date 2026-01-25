@@ -1,10 +1,11 @@
 use crate::server::{load_session, SessionState};
+use crate::views::login::Login;
 use dioxus::prelude::*;
 
 #[derive(Clone, PartialEq)]
 enum AppState {
     Login,
-    Invalid { login_name: String },
+    Invalid { login_name: String, message: String },
     Active { session: SessionState },
 }
 
@@ -18,16 +19,23 @@ pub fn Home() -> Element {
                     let result = load_session(login_name.clone()).await;
                      match result {
                         Ok(session) => app_state.set(AppState::Active { session }),
-                        Err(_) => app_state.set(AppState::Invalid{ login_name }),
+                        Err(e) => app_state.set(AppState::Invalid { login_name, message: e.to_string() }),
                     };
                 }
             }
         },
-        AppState::Invalid { login_name } => rsx! {
+        AppState::Invalid {
+            login_name,
+            message,
+        } => rsx! {
             section { class: "section",
                 div { class: "container",
-                    h1 { class: "title", "Invalid login: {login_name}" }
-                    button { class: "button is-primary", onclick: move |_| app_state.set(AppState::Login), "Try again" }
+                    section { class: "section",
+                        h1 { class: "title", "Invalid" }
+                        h2 { class: "subtitle", "{login_name}" }
+                        div { class: "box", "{message}" }
+                        button { class: "button is-primary", onclick: move |_| app_state.set(AppState::Login), "Try again" }
+                    }
                 }
             }
         },
@@ -39,45 +47,14 @@ pub fn Home() -> Element {
 
 #[component]
 fn Session(session: SessionState) -> Element {
+    let content = format!("{:?}", session);
     rsx! {
         section { class: "section",
             div { class: "container",
                 h1 { class: "title", "Home" }
                 h2 { class: "subtitle", "{session.login_name}" }
-            }
-        }
-    }
-}
-
-#[component]
-fn Login(on_login: EventHandler<String>) -> Element {
-    let mut submit_name = use_signal(|| None::<String>);
-    rsx! {
-            section { class: "section",
-            div { class: "container",
-                h1 { class: "title", "Login" }
-                div { class: "field has-addons",
-                    div { class: "control",
-                        input { class: "input",
-                            type: "text",
-                            name: "login-name",
-                            placeholder: "Enter user name",
-                            oninput: move | evt | {
-                                let value = evt.value().to_string();
-                                if value.len() > 0 && value.chars().all( | c | c.is_alphanumeric()) {
-                                    submit_name.set(Some(value));
-                                } else {
-                                    submit_name.set(None);
-                                }
-                            }
-                        }
-                    }
-                    div { class: "control",
-                        button { class: "button is-primary", type: "submit", disabled: submit_name().is_none(),
-                            onclick: move |_| on_login.call(submit_name().unwrap()),
-                            "Login"
-                        }
-                    }
+                p {
+                    {content}
                 }
             }
         }

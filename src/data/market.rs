@@ -1,7 +1,7 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SharePrice {
     #[serde(rename = "share_price")]
     pub height: f64,
@@ -9,7 +9,7 @@ pub struct SharePrice {
     pub time: chrono::DateTime<chrono::Utc>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Product {
     Stock {
@@ -21,9 +21,17 @@ pub enum Product {
     },
 }
 
+impl Product {
+    pub fn symbol(&self) -> &str {
+        match self {
+            Product::Stock { symbol, .. } => symbol,
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum ProductReadError {
-    #[error("Failed to read products from CSV file")]
+    #[error("Csv read error: {0}")]
     CsvReadError(#[from] csv::Error),
 }
 pub fn parse_products(csv_data: &[u8]) -> Result<Vec<Product>, ProductReadError> {
