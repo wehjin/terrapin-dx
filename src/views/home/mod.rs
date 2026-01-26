@@ -1,5 +1,9 @@
 use crate::server::{load_session, SessionState};
-use crate::views::login::Login;
+mod login;
+use login::Login;
+mod invalid;
+use invalid::Invalid;
+
 use dioxus::prelude::*;
 
 #[derive(Clone, PartialEq)]
@@ -28,16 +32,7 @@ pub fn Home() -> Element {
             login_name,
             message,
         } => rsx! {
-            section { class: "section",
-                div { class: "container",
-                    section { class: "section",
-                        h1 { class: "title", "Invalid" }
-                        h2 { class: "subtitle", "{login_name}" }
-                        div { class: "box", "{message}" }
-                        button { class: "button is-primary", onclick: move |_| app_state.set(AppState::Login), "Try again" }
-                    }
-                }
-            }
+            Invalid { login_name, message, on_retry: move |_| app_state.set(AppState::Login) }
         },
         AppState::Active { session } => rsx! {
             Session { session }
