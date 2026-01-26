@@ -1,10 +1,11 @@
 use crate::server::{load_session, SessionState};
+use dioxus::prelude::*;
 mod login;
 use login::Login;
 mod invalid;
 use invalid::Invalid;
-
-use dioxus::prelude::*;
+mod session;
+use session::Session;
 
 #[derive(Clone, PartialEq)]
 enum AppState {
@@ -20,8 +21,7 @@ pub fn Home() -> Element {
         AppState::Login => rsx! {
             Login {
                 on_login: move |login_name: String| async move {
-                    let result = load_session(login_name.clone()).await;
-                     match result {
+                    match load_session(login_name.clone()).await {
                         Ok(session) => app_state.set(AppState::Active { session }),
                         Err(e) => app_state.set(AppState::Invalid { login_name, message: e.to_string() }),
                     };
@@ -32,26 +32,16 @@ pub fn Home() -> Element {
             login_name,
             message,
         } => rsx! {
-            Invalid { login_name, message, on_retry: move |_| app_state.set(AppState::Login) }
+            Invalid {
+                login_name,
+                message,
+                on_retry: move |_| app_state.set(AppState::Login)
+            }
         },
         AppState::Active { session } => rsx! {
-            Session { session }
-        },
-    }
-}
-
-#[component]
-fn Session(session: SessionState) -> Element {
-    let content = format!("{:?}", session);
-    rsx! {
-        section { class: "section",
-            div { class: "container",
-                h1 { class: "title", "Home" }
-                h2 { class: "subtitle", "{session.login_name}" }
-                p {
-                    {content}
-                }
+            Session {
+                session
             }
-        }
+        },
     }
 }

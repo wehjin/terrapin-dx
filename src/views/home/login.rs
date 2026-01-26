@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 pub fn Login(on_login: EventHandler<String>) -> Element {
     let mut submit_name = use_signal(|| None::<String>);
     rsx! {
-            section { class: "section",
+        section { class: "section",
             div { class: "container",
                 h1 { class: "title", "Login" }
                 div { class: "field has-addons",
