@@ -3,7 +3,7 @@ use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::server::SessionState;
 use dioxus::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[component]
 pub fn Session(session: ReadSignal<SessionState>) -> Element {
@@ -96,12 +96,13 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
 }
 
 fn format_accounts(lots: &Vec<Lot>) -> String {
-    let accounts = lots
+    let mut accounts = lots
         .iter()
         .map(|lot| lot.account.to_string())
-        .collect::<Vec<String>>()
-        .join(", ");
-    accounts
+        .collect::<HashSet<String>>();
+    let mut sorted = accounts.drain().collect::<Vec<_>>();
+    sorted.sort();
+    sorted.join(", ")
 }
 
 #[derive(Debug, Clone)]
