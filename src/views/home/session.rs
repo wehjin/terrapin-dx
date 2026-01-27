@@ -1,4 +1,5 @@
 use crate::data::market::Product;
+use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::server::SessionState;
 use dioxus::prelude::*;
@@ -76,13 +77,18 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
         .filter(|(symbol, _)| products.contains_key(symbol))
         .map(|(symbol, lots)| {
             let product = products.get(&symbol).unwrap();
+            let name = product.name().to_string();
+            let Product::Stock {
+                outstanding_shares, ..
+            } = product;
             let quantity = lots.iter().fold(0.0, |acc, lot| acc + lot.quantity);
+            let ownership = Ownership::new(quantity, *outstanding_shares);
             HoldingRow {
                 symbol,
-                name: product.name().to_string(),
+                name,
                 accounts: format_accounts(&lots),
                 quantity: quantity.to_string(),
-                ownership: format_ownership(product.to_ownership(quantity)).to_string(),
+                ownership: ownership.to_string(),
             }
         })
         .collect::<Vec<_>>();
@@ -96,24 +102,6 @@ fn format_accounts(lots: &Vec<Lot>) -> String {
         .collect::<Vec<String>>()
         .join(", ");
     accounts
-}
-
-fn format_ownership(fraction: f64) -> &'static str {
-    if fraction >= 0.01 {
-        "S"
-    } else if fraction >= 0.001 {
-        "A"
-    } else if fraction >= 0.0001 {
-        "B"
-    } else if fraction >= 0.00001 {
-        "C"
-    } else if fraction >= 0.000001 {
-        "D"
-    } else if fraction >= 0.0000001 {
-        "E"
-    } else {
-        "F"
-    }
 }
 
 #[derive(Debug, Clone)]

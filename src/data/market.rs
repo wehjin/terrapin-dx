@@ -32,13 +32,6 @@ impl Product {
             Product::Stock { name, .. } => name,
         }
     }
-    pub fn to_ownership(&self, held: f64) -> f64 {
-        match self {
-            Product::Stock {
-                outstanding_shares, ..
-            } => held / *outstanding_shares as f64,
-        }
-    }
 }
 
 #[derive(Error, Debug)]
