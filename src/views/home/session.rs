@@ -73,7 +73,7 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
                 holdings.entry(symbol).or_default().push(lot);
                 holdings
             });
-    let rows = lots_by_product
+    let mut rows = lots_by_product
         .into_iter()
         .filter(|(symbol, _)| products.contains_key(symbol))
         .map(|(symbol, lots)| {
@@ -93,6 +93,7 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
             }
         })
         .collect::<Vec<_>>();
+    rows.sort_by(|a, b| a.symbol.cmp(&b.symbol));
     rows
 }
 
