@@ -39,8 +39,7 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
                         class: "table is-striped",
                         thead {
                             tr {
-                                th { "Symbol" }
-                                th { "Name" }
+                                th { "Product" }
                                 th { "Accounts" }
                                 th { "Quantity" }
                                 th { "Ownership" }
@@ -49,8 +48,10 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
                         tbody {
                             { holding_rows.iter().map(|row| rsx! {
                                 tr {
-                                    td { "{row.symbol}" }
-                                    td { "{row.name}" }
+                                    td {
+                                        p { class: "title is-6", "{row.symbol}" }
+                                        p { class: "subtitle is-7", "{row.name}" }
+                                    }
                                     td { "{row.accounts}" }
                                     td { "{row.quantity}" }
                                     td { "{row.ownership}" }
