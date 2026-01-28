@@ -40,7 +40,7 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
                         thead {
                             tr {
                                 th { "Product" }
-                                th { "Accounts" }
+                                th { "Account" }
                                 th { "Quantity" }
                                 th { "Ownership" }
                             }
@@ -98,13 +98,23 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
 }
 
 fn format_accounts(lots: &Vec<Lot>) -> String {
-    let mut accounts = lots
-        .iter()
-        .map(|lot| lot.account.to_string())
-        .collect::<HashSet<String>>();
-    let mut sorted = accounts.drain().collect::<Vec<_>>();
-    sorted.sort();
-    sorted.join(", ")
+    let mut account_shares = {
+        let mut map = HashMap::<String, f64>::new();
+        for lot in lots {
+            *map.entry(lot.account.clone()).or_default() += lot.quantity;
+        }
+        let vec = map.into_iter().collect::<Vec<_>>();
+        vec
+    };
+
+    account_shares.sort_by(|a, b| a.1.total_cmp(&b.1));
+    let first = account_shares.remove(0);
+    let more_part = if !account_shares.is_empty() {
+        "…".to_string()
+    } else {
+        String::new()
+    };
+    format!("{}{}", first.0, more_part)
 }
 
 #[derive(Debug, Clone)]
