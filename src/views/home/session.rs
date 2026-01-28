@@ -3,7 +3,7 @@ use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::server::SessionState;
 use dioxus::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 #[component]
 pub fn Session(session: ReadSignal<SessionState>) -> Element {

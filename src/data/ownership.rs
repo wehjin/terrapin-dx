@@ -1,18 +1,17 @@
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Ownership {
     pub level: OwnerLevel,
-    pub excess_shares: f64,
+    pub excess_shares: usize,
+    pub deficit_shares: usize,
 }
 
 impl std::fmt::Display for Ownership {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let excess_part = if self.excess_shares < 1.0 {
-            "".to_string()
-        } else {
-            let trimmed_excess = (self.excess_shares * 100.0).round() / 100.0;
-            format!("⧸{}", trimmed_excess)
-        };
-        write!(f, "{}{}", self.level, excess_part)
+        write!(
+            f,
+            "{}⧸{} → {}",
+            self.level, self.excess_shares, self.deficit_shares
+        )
     }
 }
 
@@ -20,10 +19,13 @@ impl Ownership {
     pub fn new(quantity: f64, outstanding: usize) -> Self {
         let level = OwnerLevel::new(quantity / outstanding as f64);
         let floor_shares = level.floor() * outstanding as f64;
-        let excess_shares = quantity - floor_shares.floor();
+        let excess_shares = (quantity - floor_shares).floor() as usize;
+        let ceiling_shares = level.ceiling() * outstanding as f64;
+        let deficit_shares = (ceiling_shares - quantity).ceil() as usize;
         Self {
             level,
             excess_shares,
+            deficit_shares,
         }
     }
 }
@@ -75,6 +77,18 @@ impl OwnerLevel {
             _ => OwnerLevel::S,
         }
     }
+    fn ceiling(&self) -> f64 {
+        match self {
+            OwnerLevel::S => 1.0,
+            OwnerLevel::A => Self::S_FLOOR,
+            OwnerLevel::B => Self::A_FLOOR,
+            OwnerLevel::C => Self::B_FLOOR,
+            OwnerLevel::D => Self::C_FLOOR,
+            OwnerLevel::E => Self::D_FLOOR,
+            OwnerLevel::F => Self::E_FLOOR,
+            OwnerLevel::G => Self::F_FLOOR,
+        }
+    }
 
     fn floor(&self) -> f64 {
         match self {
@@ -85,7 +99,7 @@ impl OwnerLevel {
             OwnerLevel::D => Self::D_FLOOR,
             OwnerLevel::E => Self::E_FLOOR,
             OwnerLevel::F => Self::F_FLOOR,
-            OwnerLevel::G => f64::MIN,
+            OwnerLevel::G => 0.0,
         }
     }
 }
