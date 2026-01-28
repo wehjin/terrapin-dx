@@ -88,7 +88,7 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
                 symbol,
                 name,
                 accounts: format_accounts(&lots),
-                quantity: quantity.to_string(),
+                quantity: quantity.floor() as usize,
                 ownership: ownership.to_string(),
             }
         })
@@ -109,12 +109,11 @@ fn format_accounts(lots: &Vec<Lot>) -> String {
 
     account_shares.sort_by(|a, b| a.1.total_cmp(&b.1));
     let first = account_shares.remove(0);
-    let more_part = if !account_shares.is_empty() {
-        "…".to_string()
+    if account_shares.is_empty() {
+        first.0.clone()
     } else {
-        String::new()
-    };
-    format!("{}{}", first.0, more_part)
+        format!("〚{}, …〛", first.0)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -122,6 +121,6 @@ struct HoldingRow {
     symbol: String,
     name: String,
     accounts: String,
-    quantity: String,
+    quantity: usize,
     ownership: String,
 }
