@@ -108,7 +108,7 @@ fn format_accounts(lots: &Vec<Lot>) -> String {
     };
 
     account_shares.sort_by(|a, b| a.1.total_cmp(&b.1));
-    let first = account_shares.remove(0);
+    let first = account_shares.remove(account_shares.len() - 1);
     if account_shares.is_empty() {
         first.0.clone()
     } else {
