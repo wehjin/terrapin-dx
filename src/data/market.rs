@@ -32,6 +32,18 @@ impl Product {
             Product::Stock { name, .. } => name,
         }
     }
+    pub fn outstanding_shares(&self) -> Option<usize> {
+        match self {
+            Product::Stock {
+                outstanding_shares, ..
+            } => Some(*outstanding_shares),
+        }
+    }
+    pub fn share_price(&self) -> &SharePrice {
+        match self {
+            Product::Stock { share_price, .. } => share_price,
+        }
+    }
 }
 
 #[derive(Error, Debug)]

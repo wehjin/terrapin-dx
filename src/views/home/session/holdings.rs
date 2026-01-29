@@ -1,9 +1,10 @@
-use std::collections::HashMap;
-use dioxus::prelude::*;
+use crate::components::ProductLabel;
 use crate::data::market::Product;
 use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::server::SessionState;
+use dioxus::prelude::*;
+use std::collections::HashMap;
 
 #[component]
 pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
@@ -45,8 +46,7 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                     { holding_rows.iter().map(|row| rsx! {
                         tr {
                             td {
-                                p { class: "title is-6", "{row.symbol}" }
-                                p { class: "subtitle is-7", "{row.name}" }
+                                ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
                             }
                             td { "{row.accounts}" }
                             td { "{row.quantity}" }
