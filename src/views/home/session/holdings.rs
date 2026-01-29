@@ -1,12 +1,12 @@
+use std::collections::HashMap;
+use dioxus::prelude::*;
 use crate::data::market::Product;
 use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::server::SessionState;
-use dioxus::prelude::*;
-use std::collections::HashMap;
 
 #[component]
-pub fn Session(session: ReadSignal<SessionState>) -> Element {
+pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
     let products_by_symbol = use_memo(move || {
         session()
             .products
@@ -19,46 +19,40 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
     let holding_rows = holding_rows(session().lots, products_by_symbol());
 
     rsx! {
-        section { class: "section",
-            div { class: "container",
-                div { class: "block",
-                    div { class: "level",
-                        div { class: "level-left",
-                            h1 { class: "level-item title", "Holdings" }
-                            h2 { class: "level-item subtitle",
-                                div { class: "tags has-addons",
-                                    span { class: "tag", "User" }
-                                    span { class: "tag is-info", "{subtitle}" }
-                                }
-                            }
-                        }
+        div { class: "block level",
+            div { class: "level-left",
+                h1 { class: "level-item title", "Holdings" }
+                h2 { class: "level-item subtitle",
+                    div { class: "tags has-addons",
+                        span { class: "tag", "User" }
+                        span { class: "tag is-info", "{subtitle}" }
                     }
                 }
-                div { class: "block",
-                    table {
-                        class: "table is-striped",
-                        thead {
-                            tr {
-                                th { "Product" }
-                                th { "Account" }
-                                th { "Quantity" }
-                                th { "Ownership" }
-                            }
-                        }
-                        tbody {
-                            { holding_rows.iter().map(|row| rsx! {
-                                tr {
-                                    td {
-                                        p { class: "title is-6", "{row.symbol}" }
-                                        p { class: "subtitle is-7", "{row.name}" }
-                                    }
-                                    td { "{row.accounts}" }
-                                    td { "{row.quantity}" }
-                                    td { "{row.ownership}" }
-                                }
-                            }) }
-                        }
+            }
+        }
+        div { class: "block",
+            table {
+                class: "table is-striped",
+                thead {
+                    tr {
+                        th { "Product" }
+                        th { "Account" }
+                        th { "Quantity" }
+                        th { "Ownership" }
                     }
+                }
+                tbody {
+                    { holding_rows.iter().map(|row| rsx! {
+                        tr {
+                            td {
+                                p { class: "title is-6", "{row.symbol}" }
+                                p { class: "subtitle is-7", "{row.name}" }
+                            }
+                            td { "{row.accounts}" }
+                            td { "{row.quantity}" }
+                            td { "{row.ownership}" }
+                        }
+                    }) }
                 }
             }
         }
