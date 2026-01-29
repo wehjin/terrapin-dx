@@ -25,5 +25,5 @@ fn format_share_price(price: &SharePrice) -> String {
 
 fn format_time(time: &chrono::DateTime<chrono::Utc>) -> String {
     let local_time = time.with_timezone(&chrono::Local);
-    local_time.format("%Y-%m-%d %H:%M:%S").to_string()
+    local_time.format("%b\u{202f}%-e,\u{202f}%Y@%-l:%M%P").to_string()
 }
