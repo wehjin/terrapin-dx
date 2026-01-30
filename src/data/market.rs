@@ -19,17 +19,25 @@ pub enum Product {
         #[serde(flatten)]
         share_price: SharePrice,
     },
+    Etf {
+        symbol: String,
+        name: String,
+        #[serde(flatten)]
+        share_price: SharePrice,
+    },
 }
 
 impl Product {
     pub fn symbol(&self) -> &str {
         match self {
             Product::Stock { symbol, .. } => symbol,
+            Product::Etf { symbol, .. } => symbol,
         }
     }
     pub fn name(&self) -> &str {
         match self {
             Product::Stock { name, .. } => name,
+            Product::Etf { name, .. } => name,
         }
     }
     pub fn outstanding_shares(&self) -> Option<usize> {
@@ -37,11 +45,13 @@ impl Product {
             Product::Stock {
                 outstanding_shares, ..
             } => Some(*outstanding_shares),
+            Product::Etf { .. } => None,
         }
     }
     pub fn share_price(&self) -> &SharePrice {
         match self {
             Product::Stock { share_price, .. } => share_price,
+            Product::Etf { share_price, .. } => share_price,
         }
     }
 }
@@ -72,26 +82,43 @@ pub fn parse_products(csv_data: &[u8]) -> Result<Vec<Product>, ProductReadError>
 
 #[cfg(test)]
 mod tests {
-    use crate::data::market::Product;
+    use crate::data::market::{Product, SharePrice};
     use chrono::TimeZone;
 
     #[test]
     fn test_parse_products() {
-        let csv_data = "type,symbol,name,outstanding_shares,share_price,share_price_as_of\nstock,AAPL,Apple Inc.,100,123.45,2021-01-01T00:00:00Z".as_bytes();
-        let mut products = super::parse_products(csv_data).unwrap();
-        let Product::Stock {
-            symbol,
-            name,
-            outstanding_shares,
-            share_price,
-        } = products.pop().unwrap();
-        assert_eq!(symbol, "AAPL");
-        assert_eq!(name, "Apple Inc.");
-        assert_eq!(outstanding_shares, 100);
-        assert_eq!(share_price.height, 123.45);
+        let csv_data = r#"
+        type,symbol,name,outstanding_shares,share_price,share_price_as_of
+        stock,AAPL,Apple Inc.,100,123.45,2021-01-01T00:00:00Z
+        etf,CMF,iShares California Muni Bond ETF,,57.85,2026-01-30T16:26:31Z
+        "#
+        .trim()
+        .as_bytes();
+        let vec = super::parse_products(csv_data).unwrap();
+        let array = vec.as_array().unwrap();
         assert_eq!(
-            share_price.time,
-            chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap()
+            array,
+            &[
+                Product::Stock {
+                    symbol: "AAPL".to_string(),
+                    name: "Apple Inc.".to_string(),
+                    outstanding_shares: 100,
+                    share_price: SharePrice {
+                        height: 123.45,
+                        time: chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap()
+                    },
+                },
+                Product::Etf {
+                    symbol: "CMF".to_string(),
+                    name: "iShares California Muni Bond ETF".to_string(),
+                    share_price: SharePrice {
+                        height: 57.85,
+                        time: chrono::Utc
+                            .with_ymd_and_hms(2026, 1, 30, 16, 26, 31)
+                            .unwrap()
+                    },
+                },
+            ]
         );
     }
 }
