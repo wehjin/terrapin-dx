@@ -49,9 +49,10 @@ pub async fn load_session(login_name: String) -> Result<SessionState, ServerFnEr
             login_name
         )));
     }
+    let products = backend::read_products(&data_path)?;
     let state = SessionState {
         login_name,
-        products: backend::read_products(&data_path)?,
+        products,
         lots: backend::read_lots(&data_path)?,
     };
     Ok(state)

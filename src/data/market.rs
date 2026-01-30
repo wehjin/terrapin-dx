@@ -33,6 +33,12 @@ pub enum Product {
         #[serde(flatten)]
         share_price: SharePrice,
     },
+    Note {
+        symbol: String,
+        name: String,
+        #[serde(flatten)]
+        share_price: SharePrice,
+    },
 }
 
 impl Product {
@@ -41,6 +47,7 @@ impl Product {
             Product::Stock { symbol, .. } => symbol,
             Product::Etf { symbol, .. } => symbol,
             Product::Coin { symbol, .. } => symbol,
+            Product::Note { symbol, .. } => symbol,
         }
     }
     pub fn name(&self) -> &str {
@@ -48,6 +55,7 @@ impl Product {
             Product::Stock { name, .. } => name,
             Product::Etf { name, .. } => name,
             Product::Coin { name, .. } => name,
+            Product::Note { name, .. } => name,
         }
     }
     pub fn supply(&self) -> Option<usize> {
@@ -57,13 +65,16 @@ impl Product {
             } => Some(*outstanding_shares),
             Product::Etf { .. } => None,
             Product::Coin { total_supply, .. } => Some(*total_supply),
+            Product::Note { .. } => None,
         }
     }
+
     pub fn share_price(&self) -> &SharePrice {
         match self {
             Product::Stock { share_price, .. } => share_price,
             Product::Etf { share_price, .. } => share_price,
             Product::Coin { share_price, .. } => share_price,
+            Product::Note { share_price, .. } => share_price,
         }
     }
 }
@@ -103,6 +114,7 @@ mod tests {
         stock,AAPL,Apple Inc.,100,123.45,2021-01-01T00:00:00Z
         etf,CMF,iShares California Muni Bond ETF,,57.85,2026-01-30T16:26:31Z
         coin,ETH,Ethereum,120690000,2722.99,2026-01-30T04:51:00Z
+        note,USD,US Dollar Credits,,1.0,1971-08-16T01:00:00Z
         "#
         .trim()
         .as_bytes();
@@ -137,6 +149,14 @@ mod tests {
                     share_price: SharePrice {
                         height: 2722.99,
                         time: chrono::Utc.with_ymd_and_hms(2026, 1, 30, 4, 51, 0).unwrap()
+                    },
+                },
+                Product::Note {
+                    symbol: "USD".to_string(),
+                    name: "US Dollar Credits".to_string(),
+                    share_price: SharePrice {
+                        height: 1.0,
+                        time: chrono::Utc.with_ymd_and_hms(1971, 8, 16, 1, 0, 0).unwrap()
                     },
                 }
             ]
