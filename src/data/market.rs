@@ -10,7 +10,7 @@ pub struct SharePrice {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "type", rename_all = "lowercase")]
 pub enum Product {
     Stock {
         symbol: String,
@@ -25,6 +25,14 @@ pub enum Product {
         #[serde(flatten)]
         share_price: SharePrice,
     },
+    Coin {
+        symbol: String,
+        name: String,
+        #[serde(rename = "outstanding_shares")]
+        total_supply: usize,
+        #[serde(flatten)]
+        share_price: SharePrice,
+    },
 }
 
 impl Product {
@@ -32,26 +40,30 @@ impl Product {
         match self {
             Product::Stock { symbol, .. } => symbol,
             Product::Etf { symbol, .. } => symbol,
+            Product::Coin { symbol, .. } => symbol,
         }
     }
     pub fn name(&self) -> &str {
         match self {
             Product::Stock { name, .. } => name,
             Product::Etf { name, .. } => name,
+            Product::Coin { name, .. } => name,
         }
     }
-    pub fn outstanding_shares(&self) -> Option<usize> {
+    pub fn supply(&self) -> Option<usize> {
         match self {
             Product::Stock {
                 outstanding_shares, ..
             } => Some(*outstanding_shares),
             Product::Etf { .. } => None,
+            Product::Coin { total_supply, .. } => Some(*total_supply),
         }
     }
     pub fn share_price(&self) -> &SharePrice {
         match self {
             Product::Stock { share_price, .. } => share_price,
             Product::Etf { share_price, .. } => share_price,
+            Product::Coin { share_price, .. } => share_price,
         }
     }
 }
@@ -62,10 +74,9 @@ pub enum ProductReadError {
     CsvReadError(#[from] csv::Error),
 }
 pub fn parse_products(csv_data: &[u8]) -> Result<Vec<Product>, ProductReadError> {
+    // Flattening into a proxy works around an issue with deserializing enums with interior flattened fields.
     #[derive(Debug, Deserialize)]
     struct ProductProxy {
-        #[serde(rename = "type")]
-        _product_type: String,
         #[serde(flatten)]
         product: Product,
     }
@@ -91,6 +102,7 @@ mod tests {
         type,symbol,name,outstanding_shares,share_price,share_price_as_of
         stock,AAPL,Apple Inc.,100,123.45,2021-01-01T00:00:00Z
         etf,CMF,iShares California Muni Bond ETF,,57.85,2026-01-30T16:26:31Z
+        coin,ETH,Ethereum,120690000,2722.99,2026-01-30T04:51:00Z
         "#
         .trim()
         .as_bytes();
@@ -118,6 +130,15 @@ mod tests {
                             .unwrap()
                     },
                 },
+                Product::Coin {
+                    symbol: "ETH".to_string(),
+                    name: "Ethereum".to_string(),
+                    total_supply: 120690000,
+                    share_price: SharePrice {
+                        height: 2722.99,
+                        time: chrono::Utc.with_ymd_and_hms(2026, 1, 30, 4, 51, 0).unwrap()
+                    },
+                }
             ]
         );
     }

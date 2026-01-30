@@ -74,7 +74,7 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
             let product = products.get(&symbol).unwrap();
             let name = product.name().to_string();
             let quantity = lots.iter().fold(0.0, |acc, lot| acc + lot.quantity);
-            let ownership = if let Some(value) = product.outstanding_shares() {
+            let ownership = if let Some(value) = product.supply() {
                 Ownership::new(quantity, value).to_string()
             } else {
                 "N/A".to_string()
