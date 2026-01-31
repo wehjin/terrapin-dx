@@ -137,7 +137,7 @@ fn OwnershipTags(ownership: Option<Ownership>) -> Element {
         let rank = format!(
             "{}{:02}",
             ownership.level,
-            (ownership.progress() * 100.0).ceil() as u8
+            (ownership.progress() * 100.0).floor() as u8
         );
         rsx! {
             div { class: "tags has-addons",
