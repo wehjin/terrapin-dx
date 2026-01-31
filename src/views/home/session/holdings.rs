@@ -48,9 +48,11 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                                 ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
                             }
                             td {
-                                QuantityLabel{ quantity: row.quantity, account: row.accounts.to_string()}
+                                QuantityTag{ quantity: row.quantity, account: row.accounts.to_string()}
                             }
-                            td { "{row.ownership}" }
+                            td {
+                                OwnershipTags{ ownership: row.ownership.clone() }
+                            }
                         }
                     }) }
                 }
@@ -74,10 +76,9 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
             let product = products.get(&symbol).unwrap();
             let name = product.name().to_string();
             let quantity = lots.iter().fold(0.0, |acc, lot| acc + lot.quantity);
-            let ownership = if let Some(value) = product.supply() {
-                Ownership::new(quantity, value).to_string()
-            } else {
-                "N/A".to_string()
+            let ownership = match product.supply() {
+                Some(value) => Some(Ownership::new(quantity, value)),
+                None => None,
             };
             HoldingRow {
                 symbol,
@@ -117,11 +118,11 @@ struct HoldingRow {
     name: String,
     accounts: String,
     quantity: usize,
-    ownership: String,
+    ownership: Option<Ownership>,
 }
 
 #[component]
-fn QuantityLabel(quantity: usize, account: String) -> Element {
+fn QuantityTag(quantity: usize, account: String) -> Element {
     rsx! {
         div { class: "tags has-addons",
             span { class: "tag is-dark",
@@ -130,6 +131,28 @@ fn QuantityLabel(quantity: usize, account: String) -> Element {
             span { class: "tag is-light",
             "{account}"
             }
+        }
+    }
+}
+
+#[component]
+fn OwnershipTags(ownership: Option<Ownership>) -> Element {
+    if let Some(ownership) = ownership {
+        let rank = format!(
+            "{}{:02}",
+            ownership.level,
+            (ownership.progress() * 100.0).ceil() as u8
+        );
+        rsx! {
+            div { class: "tags has-addons",
+                    span { class: "tag is-info", "{rank}" }
+                    span { class: "tag is-info is-light", "{ownership.excess_shares}" }
+                    span { class: "tag is-dark", "-{ownership.deficit_shares}" }
+            }
+        }
+    } else {
+        rsx! {
+            span { class: "tag is-light", "—" }
         }
     }
 }

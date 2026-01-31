@@ -28,6 +28,9 @@ impl Ownership {
             deficit_shares,
         }
     }
+    pub fn progress(&self) -> f64 {
+        self.excess_shares as f64 / (self.excess_shares + self.deficit_shares) as f64
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
