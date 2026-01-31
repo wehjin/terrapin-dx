@@ -125,12 +125,8 @@ struct HoldingRow {
 fn QuantityTag(quantity: usize, account: String) -> Element {
     rsx! {
         div { class: "tags has-addons",
-            span { class: "tag is-dark",
-            "{quantity}"r
-            }
-            span { class: "tag is-light",
-            "{account}"
-            }
+            span { class: "tag is-dark", "{quantity}" }
+            span { class: "tag", "{account}" }
         }
     }
 }
@@ -145,14 +141,14 @@ fn OwnershipTags(ownership: Option<Ownership>) -> Element {
         );
         rsx! {
             div { class: "tags has-addons",
-                    span { class: "tag is-info", "{rank}" }
-                    span { class: "tag is-info is-light", "{ownership.excess_shares}" }
+                    span { class: "tag is-success", "{rank}" }
+                    span { class: "tag is-success is-light", "{ownership.excess_shares}" }
                     span { class: "tag is-dark", "-{ownership.deficit_shares}" }
             }
         }
     } else {
         rsx! {
-            span { class: "tag is-light", "—" }
+            span { class: "tag", "—" }
         }
     }
 }
