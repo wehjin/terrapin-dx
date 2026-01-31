@@ -37,7 +37,6 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                 thead {
                     tr {
                         th { "Product" }
-                        th { "Account" }
                         th { "Quantity" }
                         th { "Ownership" }
                     }
@@ -48,8 +47,9 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                             td {
                                 ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
                             }
-                            td { "{row.accounts}" }
-                            td { "{row.quantity}" }
+                            td {
+                                QuantityLabel{ quantity: row.quantity, account: row.accounts.to_string()}
+                            }
                             td { "{row.ownership}" }
                         }
                     }) }
@@ -107,7 +107,7 @@ fn format_accounts(lots: &Vec<Lot>) -> String {
     if account_shares.is_empty() {
         first.0.clone()
     } else {
-        format!("〚{}, …〛", first.0)
+        format!("{}\u{202f}+\u{202f}{}", first.0, account_shares.len())
     }
 }
 
@@ -118,4 +118,18 @@ struct HoldingRow {
     accounts: String,
     quantity: usize,
     ownership: String,
+}
+
+#[component]
+fn QuantityLabel(quantity: usize, account: String) -> Element {
+    rsx! {
+        div { class: "tags has-addons",
+            span { class: "tag is-dark",
+            "{quantity}"r
+            }
+            span { class: "tag is-light",
+            "{account}"
+            }
+        }
+    }
 }
