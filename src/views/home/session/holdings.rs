@@ -17,8 +17,12 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
             .collect::<HashMap<String, Product>>()
     });
     let subtitle = format!("{}", session().login_name);
-    let holding_rows = holding_rows(session().lots, products_by_symbol());
-
+    let mut holding_rows = holding_rows(session().lots, products_by_symbol());
+    holding_rows.sort_by(|a, b| match (a.ownership, b.ownership) {
+        (Some(_), None) => std::cmp::Ordering::Less,
+        (None, Some(_)) => std::cmp::Ordering::Greater,
+        (_, _) => std::cmp::Ordering::Equal,
+    });
     rsx! {
         div { class: "block level",
             div { class: "level-left",
@@ -51,7 +55,10 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                                 QuantityTag{ quantity: row.quantity, account: row.accounts.to_string()}
                             }
                             td {
-                                OwnershipTags{ ownership: row.ownership.clone() }
+                                match row.ownership.clone() {
+                                    Some(ownership) => rsx!(OwnershipTags{ ownership }),
+                                    None => rsx!(),
+                                }
                             }
                         }
                     }) }
@@ -124,31 +131,50 @@ struct HoldingRow {
 #[component]
 fn QuantityTag(quantity: usize, account: String) -> Element {
     rsx! {
-        div { class: "tags has-addons",
-            span { class: "tag is-dark", "{quantity}" }
-            span { class: "tag", "{account}" }
+        div { class: "tags",
+            span { class: "tag is-primary", "{quantity}" }
+            span { class: "tag is-info", "{account}" }
         }
     }
 }
 
 #[component]
-fn OwnershipTags(ownership: Option<Ownership>) -> Element {
-    if let Some(ownership) = ownership {
-        let rank = format!(
-            "{}{:02}",
-            ownership.level,
-            (ownership.progress() * 100.0).floor() as u8
-        );
-        rsx! {
-            div { class: "tags has-addons",
-                    span { class: "tag is-success", "{rank}" }
-                    span { class: "tag is-success is-light", "{ownership.excess_shares}" }
-                    span { class: "tag is-dark", "-{ownership.deficit_shares}" }
-            }
+fn OwnershipTags(ownership: Ownership) -> Element {
+    let progress = (ownership.progress() * 100.0).floor() as u8;
+    let reach = 100 - progress;
+    let rank = format!("{}{:02}", ownership.level, progress);
+
+    rsx! {
+        div { class: "tags has-addons mb-2",
+                span { class: "tag is-dark", "Level" }
+                span { class: "tag is-primary", "{rank}" }
         }
-    } else {
-        rsx! {
-            span { class: "tag", "—" }
+        div { class: "field",
+            div { class: "level mb-1",
+                div { class: "level-left",
+                    div { class: "level-item",
+                        span { class: "title is-7", "{progress}%"}
+                    }
+                }
+                div { class: "level-right",
+                    div { class: "level-item",
+                        span { class: "subtitle is-7", "{reach}%"}
+                    }
+                }
+            }
+            progress { class: "progress is-small is-info mb-1", value: "{ownership.excess_shares}", max: "{ownership.total_shares()}"}
+            div { class: "level mt-1",
+                div { class: "level-left",
+                    div { class: "level-item",
+                        span { class: "title is-7", "{ownership.excess_shares}"}
+                    }
+                }
+                div { class: "level-right",
+                    div { class: "level-item",
+                        span { class: "subtitle is-7", "{ownership.deficit_shares}"}
+                    }
+                }
+            }
         }
     }
 }
