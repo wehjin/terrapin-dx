@@ -5,8 +5,20 @@ use dioxus::prelude::*;
 struct Editor {
     pub account: String,
     pub time: String,
-    pub product: String,
+    pub products: Vec<String>,
+    pub product: usize,
     pub quantity: String,
+}
+impl Editor {
+    pub fn new(products: Vec<String>) -> Self {
+        Self {
+            account: "".to_string(),
+            time: "".to_string(),
+            products,
+            product: 0,
+            quantity: "".to_string(),
+        }
+    }
 }
 
 #[component]
@@ -22,7 +34,16 @@ pub fn Lots(session: ReadSignal<SessionState>) -> Element {
         }),
         None => rsx!(LotsView {
             session,
-            on_edit: move |_| editor_signal.set(Some(Editor::default()))
+            on_edit: move |_| {
+                let mut products = session()
+                    .products
+                    .iter()
+                    .map(|product| product.symbol().to_string())
+                    .collect::<Vec<_>>();
+                products.sort();
+                let editor = Editor::new(products);
+                editor_signal.set(Some(editor))
+            }
         }),
     }
 }
@@ -62,8 +83,9 @@ fn EditLot(editor: Editor, on_end: EventHandler<Ending>) -> Element {
                             div { class: "control",
                                 div { class: "select is-fullwidth",
                                     select {
-                                        option { "RKLB" }
-                                        option { "PL" }
+                                        for product in editor.products.iter() {
+                                            option { "{product}" }
+                                        }
                                     }
                                 }
                             }
