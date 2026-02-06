@@ -1,15 +1,19 @@
 use crate::server::SessionState;
 use dioxus::prelude::*;
 
-mod products;
-use products::Products;
 mod holdings;
 use holdings::Holdings;
+mod products;
+use products::Products;
+
+mod lots;
+use lots::Lots;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum Tab {
     Holdings,
     Products,
+    Lots,
 }
 
 #[component]
@@ -17,6 +21,7 @@ fn TabListItem(tab: Tab, active: Signal<Tab>) -> Element {
     let label = match tab {
         Tab::Holdings => "Holdings",
         Tab::Products => "Products",
+        Tab::Lots => "Lots",
     };
     rsx! {
         li {
@@ -39,18 +44,16 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
                 ul { class: "menu-list",
                     TabListItem { tab: Tab::Holdings, active: tab }
                     TabListItem { tab: Tab::Products, active: tab }
+                    TabListItem { tab: Tab::Lots, active: tab }
                 }
             }
             main { class: "column",
                 match tab() {
-                    Tab::Holdings => rsx! {
-                        Holdings { session: session() }
-                    },
-                    Tab::Products => rsx! {
-                        Products { session: session() }
-                    },
+                    Tab::Holdings => rsx! (Holdings { session: session() }),
+                    Tab::Products => rsx! (Products { session: session() }),
+                    Tab::Lots => rsx!(Lots { session: session() })}
                 }
-            }
+
         }
     }
 }
