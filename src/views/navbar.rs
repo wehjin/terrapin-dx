@@ -12,6 +12,11 @@ pub fn Navbar() -> Element {
                         to: Route::Home {},
                         "Home"
                     }
+                    Link {
+                        class: "navbar-item",
+                        to: Route::Dev {},
+                        "Lab"
+                    }
                 }
             }
         }

@@ -62,7 +62,7 @@ fn EditLot(editor: Editor, on_end: EventHandler<Ending>) -> Element {
     let mut product_state = use_signal(|| editor.product);
     let mut quantity_state = use_signal(|| editor.quantity);
     let mut valid = use_signal(|| "".to_string());
-    let products = editor.products.clone();
+    let _products = editor.products.clone();
     use_effect(move || {
         let product = product_state();
         let account = account_state();

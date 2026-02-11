@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use views::{Home, Navbar};
+use views::{Dev, Home, Navbar};
 
 mod components;
 pub mod data;
@@ -15,6 +15,9 @@ enum Route {
 
     #[route("/")]
     Home {},
+
+    #[route("/dev")]
+    Dev {},
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
