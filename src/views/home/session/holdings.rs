@@ -1,8 +1,11 @@
+use crate::components::progress::ProgressIndicator;
 use crate::components::ProductLabel;
 use crate::data::market::Product;
 use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::server::SessionState;
+use chrono::{DateTime, Utc};
+use dioxus::html::completions::CompleteWithBraces::progress;
 use dioxus::prelude::*;
 use std::collections::HashMap;
 
@@ -17,7 +20,7 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
             .collect::<HashMap<String, Product>>()
     });
     let subtitle = format!("{}", session().login_name);
-    let mut holding_rows = holding_rows(session().lots, products_by_symbol());
+    let mut holding_rows = holding_rows(session().lots, products_by_symbol(), Utc::now());
     holding_rows.sort_by(|a, b| match (a.ownership, b.ownership) {
         (Some(_), None) => std::cmp::Ordering::Less,
         (None, Some(_)) => std::cmp::Ordering::Greater,
@@ -52,7 +55,11 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                                 ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
                             }
                             td {
-                                QuantityTag{ quantity: row.quantity, account: row.accounts.to_string()}
+                                QuantityTag{
+                                    quantity: row.quantity,
+                                    account: row.accounts.to_string()
+                                }
+                                TermIndicator{ long_term: row.long_term, short_term: row.short_term }
                             }
                             td {
                                 match row.ownership.clone() {
@@ -68,7 +75,12 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
     }
 }
 
-fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<HoldingRow> {
+fn holding_rows(
+    lots: Vec<Lot>,
+    products: HashMap<String, Product>,
+    now: DateTime<Utc>,
+) -> Vec<HoldingRow> {
+    let one_year_ago = now - chrono::Duration::days(365);
     let lots_by_product: HashMap<String, Vec<Lot>> =
         lots.into_iter()
             .fold(HashMap::<String, Vec<Lot>>::new(), |mut holdings, lot| {
@@ -82,7 +94,16 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
         .map(|(symbol, lots)| {
             let product = products.get(&symbol).unwrap();
             let name = product.name().to_string();
-            let quantity = lots.iter().fold(0.0, |acc, lot| acc + lot.quantity);
+            let (quantity, long_term, short_term) =
+                lots.iter()
+                    .fold((0.0, 0.0, 0.0), |(quantity, long_term, short_term), lot| {
+                        let new_quantity = quantity + lot.quantity;
+                        if lot.time < one_year_ago {
+                            (new_quantity, long_term + lot.quantity, short_term)
+                        } else {
+                            (new_quantity, long_term, short_term + lot.quantity)
+                        }
+                    });
             let ownership = match product.supply() {
                 Some(value) => Some(Ownership::new(quantity, value)),
                 None => None,
@@ -93,6 +114,8 @@ fn holding_rows(lots: Vec<Lot>, products: HashMap<String, Product>) -> Vec<Holdi
                 accounts: format_accounts(&lots),
                 quantity: quantity.floor() as usize,
                 ownership,
+                long_term,
+                short_term,
             }
         })
         .collect::<Vec<_>>();
@@ -126,6 +149,8 @@ struct HoldingRow {
     accounts: String,
     quantity: usize,
     ownership: Option<Ownership>,
+    long_term: f64,
+    short_term: f64,
 }
 
 #[component]
@@ -139,42 +164,32 @@ fn QuantityTag(quantity: usize, account: String) -> Element {
 }
 
 #[component]
+fn TermIndicator(long_term: f64, short_term: f64) -> Element {
+    let total = long_term + short_term;
+    rsx! {
+        ProgressIndicator{
+            title: "Long-term".to_string(),
+            progress: long_term.round() as usize,
+            total: total.ceil() as usize,
+        }
+    }
+}
+
+#[component]
 fn OwnershipTags(ownership: Ownership) -> Element {
     let progress = (ownership.progress() * 100.0).floor() as u8;
     let reach = 100 - progress;
     let rank = format!("{}{:02}", ownership.level, progress);
 
     rsx! {
-        div { class: "tags has-addons mb-2",
+        div { class: "tags has-addons",
                 span { class: "tag is-dark", "Level" }
                 span { class: "tag is-primary", "{rank}" }
         }
-        div { class: "field",
-            div { class: "level mb-1",
-                div { class: "level-left",
-                    div { class: "level-item",
-                        span { class: "title is-7", "{progress}%"}
-                    }
-                }
-                div { class: "level-right",
-                    div { class: "level-item",
-                        span { class: "subtitle is-7", "{reach}%"}
-                    }
-                }
-            }
-            progress { class: "progress is-small is-info mb-1", value: "{ownership.excess_shares}", max: "{ownership.total_shares()}"}
-            div { class: "level mt-1",
-                div { class: "level-left",
-                    div { class: "level-item",
-                        span { class: "title is-7", "{ownership.excess_shares}"}
-                    }
-                }
-                div { class: "level-right",
-                    div { class: "level-item",
-                        span { class: "subtitle is-7", "{ownership.deficit_shares}"}
-                    }
-                }
-            }
+        ProgressIndicator{
+            title: "Progress".to_string(),
+            progress: ownership.excess_shares,
+            total: ownership.total_shares()
         }
     }
 }

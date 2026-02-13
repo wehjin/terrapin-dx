@@ -1,6 +1,8 @@
 use crate::data::market::SharePrice;
 use dioxus::prelude::*;
 
+pub mod progress;
+
 #[component]
 pub fn ProductLabel(symbol: String, name: String) -> Element {
     rsx! {
@@ -25,5 +27,7 @@ fn format_share_price(price: &SharePrice) -> String {
 
 fn format_time(time: &chrono::DateTime<chrono::Utc>) -> String {
     let local_time = time.with_timezone(&chrono::Local);
-    local_time.format("%b\u{202f}%-e,\u{202f}%Y\u{202f}@\u{202f}%-l:%M%P").to_string()
+    local_time
+        .format("%b\u{202f}%-e,\u{202f}%Y\u{202f}@\u{202f}%-l:%M%P")
+        .to_string()
 }
