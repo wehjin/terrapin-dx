@@ -1,13 +1,14 @@
 use crate::data::market::SharePrice;
 use dioxus::prelude::*;
 
+pub mod pill;
 pub mod progress;
 
 #[component]
 pub fn ProductLabel(symbol: String, name: String) -> Element {
     rsx! {
         p { class: "title is-6", "{symbol}" }
-        p { class: "subtitle is-7", "{name}" }
+        p { class: "subtitle is-7 mb-2", "{name}" }
     }
 }
 

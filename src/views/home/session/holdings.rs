@@ -1,3 +1,4 @@
+use crate::components::pill::{BulmaColor, LabelPill};
 use crate::components::progress::ProgressIndicator;
 use crate::components::ProductLabel;
 use crate::data::market::Product;
@@ -5,7 +6,6 @@ use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::server::SessionState;
 use chrono::{DateTime, Utc};
-use dioxus::html::completions::CompleteWithBraces::progress;
 use dioxus::prelude::*;
 use std::collections::HashMap;
 
@@ -31,10 +31,7 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
             div { class: "level-left",
                 h1 { class: "level-item title", "Holdings" }
                 h2 { class: "level-item subtitle",
-                    div { class: "tags has-addons",
-                        span { class: "tag", "User" }
-                        span { class: "tag is-info", "{subtitle}" }
-                    }
+                    LabelPill { label: "User", value: subtitle, color: BulmaColor::Link }
                 }
             }
         }
@@ -44,23 +41,26 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                 thead {
                     tr {
                         th { "Product" }
-                        th { "Quantity" }
+                        th { "Tax" }
                         th { "Ownership" }
                     }
                 }
                 tbody {
                     { holding_rows.iter().map(|row| rsx! {
                         tr {
+                            // Product
                             td {
                                 ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
-                            }
-                            td {
                                 QuantityTag{
                                     quantity: row.quantity,
                                     account: row.accounts.to_string()
                                 }
-                                TermIndicator{ long_term: row.long_term, short_term: row.short_term }
                             }
+                            // Term
+                            td {
+                                TermIndicator{ long_term: row.long_term, short_term: row.short_term, wash: row.wash}
+                            }
+                            // Ownership
                             td {
                                 match row.ownership.clone() {
                                     Some(ownership) => rsx!(OwnershipTags{ ownership }),
@@ -81,6 +81,7 @@ fn holding_rows(
     now: DateTime<Utc>,
 ) -> Vec<HoldingRow> {
     let one_year_ago = now - chrono::Duration::days(365);
+    let wash_start = now - chrono::Duration::days(32);
     let lots_by_product: HashMap<String, Vec<Lot>> =
         lots.into_iter()
             .fold(HashMap::<String, Vec<Lot>>::new(), |mut holdings, lot| {
@@ -94,16 +95,19 @@ fn holding_rows(
         .map(|(symbol, lots)| {
             let product = products.get(&symbol).unwrap();
             let name = product.name().to_string();
-            let (quantity, long_term, short_term) =
-                lots.iter()
-                    .fold((0.0, 0.0, 0.0), |(quantity, long_term, short_term), lot| {
-                        let new_quantity = quantity + lot.quantity;
-                        if lot.time < one_year_ago {
-                            (new_quantity, long_term + lot.quantity, short_term)
-                        } else {
-                            (new_quantity, long_term, short_term + lot.quantity)
-                        }
-                    });
+            let (quantity, long_term, short_term, wash) = lots.iter().fold(
+                (0.0, 0.0, 0.0, 0.0),
+                |(quantity, long_term, short_term, wash), lot| {
+                    let new_quantity = quantity + lot.quantity;
+                    if lot.time < one_year_ago {
+                        (new_quantity, long_term + lot.quantity, short_term, wash)
+                    } else if lot.time < wash_start {
+                        (new_quantity, long_term, short_term + lot.quantity, wash)
+                    } else {
+                        (new_quantity, long_term, short_term, wash + lot.quantity)
+                    }
+                },
+            );
             let ownership = match product.supply() {
                 Some(value) => Some(Ownership::new(quantity, value)),
                 None => None,
@@ -116,6 +120,7 @@ fn holding_rows(
                 ownership,
                 long_term,
                 short_term,
+                wash,
             }
         })
         .collect::<Vec<_>>();
@@ -151,43 +156,45 @@ struct HoldingRow {
     ownership: Option<Ownership>,
     long_term: f64,
     short_term: f64,
+    wash: f64,
 }
 
 #[component]
 fn QuantityTag(quantity: usize, account: String) -> Element {
     rsx! {
-        div { class: "tags",
-            span { class: "tag is-primary", "{quantity}" }
-            span { class: "tag is-info", "{account}" }
-        }
+        LabelPill { label: "Shares", value: quantity.to_string(), color: BulmaColor::Primary }
+        LabelPill { label: "Location", value: account, color: BulmaColor::Link }
     }
 }
 
 #[component]
-fn TermIndicator(long_term: f64, short_term: f64) -> Element {
-    let total = long_term + short_term;
+fn TermIndicator(long_term: f64, short_term: f64, wash: f64) -> Element {
+    let long_term = long_term.ceil() as usize;
+    let short_term = short_term.ceil() as usize;
+    let wash = wash.ceil() as usize;
     rsx! {
-        ProgressIndicator{
-            title: "Long-term".to_string(),
-            progress: long_term.round() as usize,
-            total: total.ceil() as usize,
+        if long_term > 0 {
+            LabelPill { label: "Long", value: long_term, color: BulmaColor::Success }
+        }
+        if short_term > 0 {
+            LabelPill { label: "Short", value: short_term, color: BulmaColor::Warning }
+        }
+        if wash > 0 {
+            LabelPill { label: "Wash", value: wash, color: BulmaColor::Danger }
         }
     }
 }
 
 #[component]
 fn OwnershipTags(ownership: Ownership) -> Element {
-    let progress = (ownership.progress() * 100.0).floor() as u8;
-    let reach = 100 - progress;
-    let rank = format!("{}{:02}", ownership.level, progress);
-
+    let color = BulmaColor::Primary;
     rsx! {
         div { class: "tags has-addons",
                 span { class: "tag is-dark", "Level" }
-                span { class: "tag is-primary", "{rank}" }
+                span { class: "tag", class: "{color.class()}", "{ownership.level}" }
         }
         ProgressIndicator{
-            title: "Progress".to_string(),
+            title: "Next level:".to_string(),
             progress: ownership.excess_shares,
             total: ownership.total_shares()
         }
