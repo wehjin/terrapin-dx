@@ -24,11 +24,20 @@ impl BulmaColor {
 }
 
 #[component]
-pub fn LabelPill(label: String, value: String, color: BulmaColor) -> Element {
-    rsx! {
-        div { class: "tags has-addons mb-2",
-            span { class: "tag is-dark", "{label}" }
-            span { class: "tag", class: "{color.class()}", "{value}" }
-        }
+pub fn LabelPill(label: String, value: String, color: BulmaColor, tail: Option<String>) -> Element {
+    match tail {
+        None => rsx!(
+            div { class: "tags has-addons mb-2",
+                span { class: "tag is-dark", "{label}" }
+                span { class: "tag", class: "{color.class()}", "{value}" }
+            }
+        ),
+        Some(tail) => rsx!(
+            div { class: "tags has-addons mb-2",
+                span { class: "tag", class: "{color.class()}", "{label}" }
+                span { class: "tag is-dark", "{value}" }
+                span { class: "tag", class: "{color.class()}",  "{tail}" }
+            }
+        ),
     }
 }
