@@ -36,39 +36,41 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
             }
         }
         div { class: "block",
-            table {
-                class: "table is-striped",
-                thead {
-                    tr {
-                        th { "Product" }
-                        th { "Tax" }
-                        th { "Ownership" }
-                    }
-                }
-                tbody {
-                    { holding_rows.iter().map(|row| rsx! {
+            div { class: "table-container",
+                table {
+                    class: "table is-striped",
+                    thead {
                         tr {
-                            // Product
-                            td {
-                                ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
-                                QuantityTag{
-                                    quantity: row.quantity,
-                                    account: row.accounts.to_string()
-                                }
-                            }
-                            // Term
-                            td {
-                                TermIndicator{ long_term: row.long_term, short_term: row.short_term, wash: row.wash}
-                            }
-                            // Ownership
-                            td {
-                                match row.ownership.clone() {
-                                    Some(ownership) => rsx!(OwnershipTags{ ownership }),
-                                    None => rsx!(),
-                                }
-                            }
+                            th { "Product" }
+                            th { "Tax" }
+                            th { "Ownership" }
                         }
-                    }) }
+                    }
+                    tbody {
+                        { holding_rows.iter().map(|row| rsx! {
+                            tr {
+                                // Product
+                                td {
+                                    ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
+                                    QuantityTag{
+                                        quantity: row.quantity,
+                                        account: row.accounts.to_string()
+                                    }
+                                }
+                                // Term
+                                td {
+                                    TermIndicator{ long_term: row.long_term, short_term: row.short_term, wash: row.wash}
+                                }
+                                // Ownership
+                                td {
+                                    match row.ownership.clone() {
+                                        Some(ownership) => rsx!(OwnershipTags{ ownership }),
+                                        None => rsx!(),
+                                    }
+                                }
+                            }
+                        }) }
+                    }
                 }
             }
         }
