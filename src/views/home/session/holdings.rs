@@ -33,9 +33,9 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                 class: "table is-striped",
                 thead {
                     tr {
-                        th { "Product" }
+                        th { "Asset" }
+                        th { "Level" }
                         th { "Term" }
-                        th { "Ownership" }
                     }
                 }
                 tbody {
@@ -43,19 +43,19 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                         tr {
                             // Product
                             td {
-                                ProductLabel{ symbol: format!("{} {}", row.quantity, row.symbol.clone()), name: row.name.clone()}
-                                LabelPill { label: "Location", value: row.accounts.to_string(), color: BulmaColor::Link }
+                                LabelPill { label: row.accounts.clone(), value: row.quantity.to_string(), color: BulmaColor::Light }
+                                ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
                             }
-                            // Term
-                            td {
-                                TermIndicator{ term_report: row.term_report.clone() }
-                            }
-                            // Ownership
+                            // Level
                             td {
                                 match row.ownership.clone() {
                                     Some(ownership) => rsx!(OwnershipTags{ ownership }),
                                     None => rsx!(),
                                 }
+                            }
+                            // Term
+                            td {
+                                TermIndicator{ term_report: row.term_report.clone() }
                             }
                         }
                     }) }
@@ -166,7 +166,7 @@ fn OwnershipTags(ownership: Ownership) -> Element {
     rsx! {
         LabelPill { label: "Level", value: ownership.level, color: BulmaColor::Primary }
         ProgressIndicator{
-            title: "Next level:".to_string(),
+            title: "Level up".to_string(),
             progress: ownership.excess_shares,
             total: ownership.total_shares()
         }
