@@ -7,14 +7,19 @@ mod products;
 use products::Products;
 
 mod lots;
+use crate::components::pill::{BulmaColor, LabelPill};
 use lots::Lots;
 
 #[component]
 pub fn Session(session: ReadSignal<SessionState>) -> Element {
     let tab = use_signal(|| Tab::Holdings);
+    let user_name = mask_middle_chars(&session().login_name);
     rsx! {
         div { class: "columns p-2",
             aside { class: "column is-narrow menu",
+                p { class: "menu-list",
+                    LabelPill { label: "User", value: user_name, color: BulmaColor::Light }
+                }
                 p { class: "menu-label", "Treasury" }
                 ul { class: "menu-list",
                     TabListItem { tab: Tab::Holdings, active: tab }
@@ -34,6 +39,18 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
 
         }
     }
+}
+
+fn mask_middle_chars(s: &str) -> String {
+    let mut chars: Vec<char> = s.chars().collect();
+
+    if chars.len() > 2 {
+        for i in 1..chars.len() - 1 {
+            chars[i] = '-';
+        }
+    }
+
+    chars.into_iter().collect()
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]

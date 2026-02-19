@@ -8,6 +8,7 @@ pub enum BulmaColor {
     Success,
     Warning,
     Danger,
+    Light,
 }
 
 impl BulmaColor {
@@ -19,6 +20,7 @@ impl BulmaColor {
             BulmaColor::Success => "is-success",
             BulmaColor::Warning => "is-warning",
             BulmaColor::Danger => "is-danger",
+            BulmaColor::Light => "is-light",
         }
     }
 }

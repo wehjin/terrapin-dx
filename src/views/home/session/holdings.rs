@@ -20,7 +20,6 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
             .map(|product| (product.symbol().to_string(), product))
             .collect::<HashMap<String, Product>>()
     });
-    let subtitle = format!("{}", session().login_name);
     let mut holding_rows = holding_rows(session().lots, products_by_symbol(), Utc::now());
     holding_rows.sort_by(|a, b| match (a.ownership, b.ownership) {
         (Some(_), None) => std::cmp::Ordering::Less,
@@ -28,15 +27,8 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
         (_, _) => std::cmp::Ordering::Equal,
     });
     rsx! {
-        div { class: "level block",
-            div { class: "level-left",
-                h1 { class: "level-item title", "Holdings" }
-                h2 { class: "level-item subtitle",
-                    LabelPill { label: "User", value: subtitle, color: BulmaColor::Link }
-                }
-            }
-        }
-        div { class: "table-container block",
+        h1 { class: "title", "Holdings" }
+        div { class: "table-container",
             table {
                 class: "table is-striped",
                 thead {
