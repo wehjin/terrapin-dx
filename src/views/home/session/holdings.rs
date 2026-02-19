@@ -30,7 +30,7 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
         h1 { class: "title", "Holdings" }
         div { class: "table-container",
             table {
-                class: "table is-striped",
+                class: "table",
                 thead {
                     tr {
                         th { "Asset" }
