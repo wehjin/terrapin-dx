@@ -159,14 +159,14 @@ fn TermIndicator(term_report: TermReport) -> Element {
         .wash_exit
         .map(|exit| exit.format("%b %-d").to_string());
     rsx! {
-        if long_term > 0 {
-            LabelPill { label: "Long", value: long_term, color: BulmaColor::Success, tail: long_exit }
+        if wash > 0 {
+            LabelPill { label: "Wash", value: wash, color: BulmaColor::Danger, tail: wash_exit }
         }
         if short_term > 0 {
             LabelPill { label: "Short", value: short_term, color: BulmaColor::Warning, tail: short_exit }
         }
-        if wash > 0 {
-            LabelPill { label: "Wash", value: wash, color: BulmaColor::Danger, tail: wash_exit }
+        if long_term > 0 {
+            LabelPill { label: "Long", value: long_term, color: BulmaColor::Success, tail: long_exit }
         }
     }
 }
