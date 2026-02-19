@@ -8,7 +8,7 @@ pub mod progress;
 pub fn ProductLabel(symbol: String, name: String) -> Element {
     rsx! {
         p { class: "title is-6", "{symbol}" }
-        p { class: "subtitle is-7 mb-2", "{name}" }
+        p { class: "subtitle is-7 mb-4", "{name}" }
     }
 }
 

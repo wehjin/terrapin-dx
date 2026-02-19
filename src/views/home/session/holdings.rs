@@ -43,8 +43,8 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                         tr {
                             // Product
                             td {
-                                LabelPill { label: row.accounts.clone(), value: row.quantity.to_string(), color: BulmaColor::Light }
                                 ProductLabel{ symbol: row.symbol.clone(), name: row.name.clone()}
+                                LabelPill { label: row.accounts.clone(), value: row.quantity.to_string(), color: BulmaColor::Light }
                             }
                             // Level
                             td {
