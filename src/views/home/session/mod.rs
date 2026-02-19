@@ -9,6 +9,33 @@ use products::Products;
 mod lots;
 use lots::Lots;
 
+#[component]
+pub fn Session(session: ReadSignal<SessionState>) -> Element {
+    let tab = use_signal(|| Tab::Holdings);
+    rsx! {
+        div { class: "columns p-2",
+            aside { class: "column is-narrow menu",
+                p { class: "menu-label", "Treasury" }
+                ul { class: "menu-list",
+                    TabListItem { tab: Tab::Holdings, active: tab }
+                    TabListItem { tab: Tab::Lots, active: tab }
+                }
+                p { class: "menu-label", "Market" }
+                ul { class: "menu-list",
+                    TabListItem { tab: Tab::Products, active: tab }
+                }
+            }
+            main { class: "column p-4",
+                match tab() {
+                    Tab::Holdings => rsx! (Holdings { session: session() }),
+                    Tab::Products => rsx! (Products { session: session() }),
+                    Tab::Lots => rsx!(Lots { session: session() })}
+                }
+
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum Tab {
     Holdings,
@@ -30,30 +57,6 @@ fn TabListItem(tab: Tab, active: Signal<Tab>) -> Element {
                 onclick: move |_| active.set(tab),
                 "{label}"
             }
-        }
-    }
-}
-
-#[component]
-pub fn Session(session: ReadSignal<SessionState>) -> Element {
-    let tab = use_signal(|| Tab::Holdings);
-    rsx! {
-        div { class: "columns p-2",
-            aside { class: "column is-narrow menu",
-                p { class: "menu-label", "General" }
-                ul { class: "menu-list",
-                    TabListItem { tab: Tab::Holdings, active: tab }
-                    TabListItem { tab: Tab::Products, active: tab }
-                    TabListItem { tab: Tab::Lots, active: tab }
-                }
-            }
-            main { class: "column p-4",
-                match tab() {
-                    Tab::Holdings => rsx! (Holdings { session: session() }),
-                    Tab::Products => rsx! (Products { session: session() }),
-                    Tab::Lots => rsx!(Lots { session: session() })}
-                }
-
         }
     }
 }
