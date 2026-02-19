@@ -10,7 +10,7 @@ pub fn ProgressIndicator(title: String, progress: usize, total: usize) -> Elemen
     rsx! {
         div { class: "field",
             div { class: "label is-small", "{title}" }
-            div { class: "level mb-1",
+            div { class: "level mb-1 is-mobile",
                 div { class: "level-left",
                     div { class: "level-item",
                         span { class: "title is-7", "{progress_portion}%"}
@@ -23,7 +23,7 @@ pub fn ProgressIndicator(title: String, progress: usize, total: usize) -> Elemen
                 }
             }
             progress { class: "progress is-small mb-1", class: "{color.class()}", value: "{progress}", max: "{total}"}
-            div { class: "level mt-1",
+            div { class: "level mt-1 is-mobile",
                 div { class: "level-left",
                     div { class: "level-item",
                         span { class: "title is-7", "{progress}"}

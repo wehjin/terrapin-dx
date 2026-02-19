@@ -38,8 +38,8 @@ fn TabListItem(tab: Tab, active: Signal<Tab>) -> Element {
 pub fn Session(session: ReadSignal<SessionState>) -> Element {
     let tab = use_signal(|| Tab::Holdings);
     rsx! {
-        div { class: "columns pl-4",
-            aside { class: "column is-2 menu",
+        div { class: "columns p-2",
+            aside { class: "column is-narrow menu",
                 p { class: "menu-label", "General" }
                 ul { class: "menu-list",
                     TabListItem { tab: Tab::Holdings, active: tab }
@@ -47,7 +47,7 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
                     TabListItem { tab: Tab::Lots, active: tab }
                 }
             }
-            main { class: "column",
+            main { class: "column p-4",
                 match tab() {
                     Tab::Holdings => rsx! (Holdings { session: session() }),
                     Tab::Products => rsx! (Products { session: session() }),

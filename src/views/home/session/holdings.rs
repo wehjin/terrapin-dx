@@ -28,7 +28,7 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
         (_, _) => std::cmp::Ordering::Equal,
     });
     rsx! {
-        div { class: "block level",
+        div { class: "level block",
             div { class: "level-left",
                 h1 { class: "level-item title", "Holdings" }
                 h2 { class: "level-item subtitle",
@@ -36,39 +36,37 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
                 }
             }
         }
-        div { class: "block",
-            div { class: "table-container",
-                table {
-                    class: "table is-striped",
-                    thead {
-                        tr {
-                            th { "Product" }
-                            th { "Term" }
-                            th { "Ownership" }
-                        }
+        div { class: "table-container block",
+            table {
+                class: "table is-striped",
+                thead {
+                    tr {
+                        th { "Product" }
+                        th { "Term" }
+                        th { "Ownership" }
                     }
-                    tbody {
-                        { holding_rows.iter().map(|row| rsx! {
-                            tr {
-                                // Product
-                                td {
-                                    ProductLabel{ symbol: format!("{} {}", row.quantity, row.symbol.clone()), name: row.name.clone()}
-                                    LabelPill { label: "Location", value: row.accounts.to_string(), color: BulmaColor::Link }
-                                }
-                                // Term
-                                td {
-                                    TermIndicator{ term_report: row.term_report.clone() }
-                                }
-                                // Ownership
-                                td {
-                                    match row.ownership.clone() {
-                                        Some(ownership) => rsx!(OwnershipTags{ ownership }),
-                                        None => rsx!(),
-                                    }
+                }
+                tbody {
+                    { holding_rows.iter().map(|row| rsx! {
+                        tr {
+                            // Product
+                            td {
+                                ProductLabel{ symbol: format!("{} {}", row.quantity, row.symbol.clone()), name: row.name.clone()}
+                                LabelPill { label: "Location", value: row.accounts.to_string(), color: BulmaColor::Link }
+                            }
+                            // Term
+                            td {
+                                TermIndicator{ term_report: row.term_report.clone() }
+                            }
+                            // Ownership
+                            td {
+                                match row.ownership.clone() {
+                                    Some(ownership) => rsx!(OwnershipTags{ ownership }),
+                                    None => rsx!(),
                                 }
                             }
-                        }) }
-                    }
+                        }
+                    }) }
                 }
             }
         }
@@ -149,7 +147,7 @@ struct HoldingRow {
 #[component]
 fn TermIndicator(term_report: TermReport) -> Element {
     let long_term = term_report.long_term.ceil() as usize;
-    let long_exit = Some("∞".to_string());
+    let long_exit = Some("\u{00a0}\u{00a0}∞\u{00a0}\u{00a0}".to_string());
     let short_term = term_report.short_term.ceil() as usize;
     let short_exit = term_report
         .short_exit
