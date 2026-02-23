@@ -44,8 +44,9 @@ fn PasskeyRegistration(user_id: Uuid, username: String) -> Element {
                         }
                     }
                     Err(err) => {
-                        let err_msg = err
-                            .as_string()
+                        let err_msg = js_sys::Object::from(err)
+                            .to_string() // Calls the JS .toString() method
+                            .as_string() // Converts the resulting JsString to Rust String
                             .unwrap_or_else(|| "Unknown Browser Error".into());
                         status.set(format!("Browser Error: {err_msg}"));
                     }

@@ -4879,6 +4879,7 @@ dependencies = [
  "csv",
  "dioxus",
  "getrandom 0.4.1",
+ "js-sys",
  "serde",
  "serde_json",
  "thiserror 2.0.18",

@@ -19,6 +19,7 @@ serde_json = "1.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.4", features = ["wasm_js"] }
+js-sys = "0.3"
 web-sys = { version = "0.3", features = ["CredentialsContainer", "PublicKeyCredential", "Window", "Navigator"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
