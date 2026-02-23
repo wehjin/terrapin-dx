@@ -12,6 +12,17 @@ csv = "1.4.0"
 dioxus = { version = "0.7.1", features = ["router", "fullstack"] }
 serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
+webauthn-rs-proto = "0.5"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.4", features = ["wasm_js"] }
+web-sys = { version = "0.3", features = ["CredentialsContainer", "PublicKeyCredential", "Window", "Navigator"] }
+wasm-bindgen = "0.2"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+webauthn-rs = "0.5"
+tower-sessions = "0.15"
+
 
 [features]
 default = ["web"]

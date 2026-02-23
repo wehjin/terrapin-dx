@@ -1,4 +1,4 @@
-use crate::server::{load_session, SessionState};
+use crate::api::load_session;
 use dioxus::prelude::*;
 mod login;
 use login::Login;
@@ -6,6 +6,7 @@ mod invalid;
 use invalid::Invalid;
 mod session;
 use session::Session;
+use crate::api::session::SessionState;
 
 #[derive(Clone, PartialEq)]
 enum AppState {

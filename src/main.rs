@@ -4,9 +4,11 @@ use views::{Dev, Home, Navbar};
 
 mod components;
 pub mod data;
-
-pub mod server;
+pub mod api;
 mod views;
+
+#[cfg(feature = "server")]
+mod backend;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]

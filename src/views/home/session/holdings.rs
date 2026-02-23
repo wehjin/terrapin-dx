@@ -5,7 +5,7 @@ use crate::data::market::Product;
 use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::data::term::{term_reports, TermReport};
-use crate::server::SessionState;
+use crate::api::session::SessionState;
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use std::collections::HashMap;

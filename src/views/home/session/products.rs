@@ -1,5 +1,5 @@
 use crate::components::{ProductLabel, SharePriceLabel};
-use crate::server::SessionState;
+use crate::api::session::SessionState;
 use dioxus::prelude::*;
 
 #[component]
