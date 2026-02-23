@@ -4,6 +4,8 @@ use crate::data::{market, portfolio};
 use dioxus::fullstack::ServerFnError;
 use std::path::Path;
 
+pub mod auth;
+
 pub fn read_products(data_path: &Path) -> Result<Vec<Product>, ServerFnError> {
     let path = data_path.join("products.csv");
     let bytes = std::fs::read(path)
