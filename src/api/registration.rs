@@ -13,13 +13,13 @@ pub async fn start_registration(
 
     if !is_valid_username(&username) {
         return Err(ServerFnError::new(format!(
-            "Invalid username: {}",
+            "Invalid username: '{}'",
             username
         )));
     }
     if is_active_user(&username) {
         return Err(ServerFnError::new(format!(
-            "Duplicate username: {}",
+            "Duplicate username: '{}'",
             username
         )));
     }

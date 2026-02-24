@@ -8,7 +8,7 @@ mod views;
 
 #[cfg(feature = "server")]
 mod backend;
-#[cfg(not(feature = "server"))]
+#[cfg(feature = "web")]
 mod frontend;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
@@ -30,25 +30,26 @@ enum Route {
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
-#[cfg(feature = "server")]
 fn main() {
-    use tower_sessions::cookie::time::Duration;
-    use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
-    let is_prod = std::env::var("APP_ENV").unwrap_or_default() == "production";
-    info!("Running in production mode: {is_prod}");
-    serve(|| async move {
-        let session_store = MemoryStore::default();
-        let session_layer = SessionManagerLayer::new(session_store)
-            .with_secure(is_prod)
-            .with_expiry(Expiry::OnInactivity(Duration::hours(1)));
-        let router = dioxus::server::router(App).layer(session_layer);
-        Ok(router)
-    });
-}
-
-#[cfg(not(feature = "server"))]
-fn main() {
-    launch(App);
+    #[cfg(feature = "web")]
+    {
+        launch(App);
+    }
+    #[cfg(feature = "server")]
+    {
+        use tower_sessions::cookie::time::Duration;
+        use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
+        let is_prod = std::env::var("APP_ENV").unwrap_or_default() == "production";
+        info!("Running in production mode: {is_prod}");
+        serve(|| async move {
+            let session_store = MemoryStore::default();
+            let session_layer = SessionManagerLayer::new(session_store)
+                .with_secure(is_prod)
+                .with_expiry(Expiry::OnInactivity(Duration::hours(1)));
+            let router = dioxus::server::router(App).layer(session_layer);
+            Ok(router)
+        });
+    }
 }
 
 #[component]

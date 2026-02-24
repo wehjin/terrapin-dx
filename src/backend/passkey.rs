@@ -41,13 +41,13 @@ pub fn register_user(login: Login) -> Result<(), RegistrationError> {
     if !is_valid_username(&username) {
         return Err(RegistrationError::InvalidUsername);
     }
-    // Construct user directory
-    let user_path = user_data_path(&username);
-    if user_path.exists() {
+    if is_active_user(&username) {
         return Err(RegistrationError::DuplicateUsername(username.clone()));
     }
+    // Construct user directory
+    let user_path = user_data_path(&username);
     fs::create_dir_all(&user_path)?;
-    fs::write(user_path.join("login.json"), serde_json::to_string(&login)?)?;
+    fs::write(user_path.join(LOGIN_FILE), serde_json::to_string(&login)?)?;
     Ok(())
 }
 
@@ -58,7 +58,7 @@ pub fn load_login(username: &str) -> Result<Login, RegistrationError> {
 }
 
 pub fn is_active_user(username: &str) -> bool {
-    user_data_path(username).exists()
+    user_data_path(username).join(LOGIN_FILE).exists()
 }
 
 pub fn is_valid_username(username: &str) -> bool {
@@ -84,3 +84,5 @@ pub struct RegistrationContext {
     pub user_id: Uuid,
     pub username: String,
 }
+
+const LOGIN_FILE: &'static str = "login.json";
