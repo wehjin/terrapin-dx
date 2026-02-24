@@ -4,7 +4,7 @@ use uuid::Uuid;
 #[component]
 pub fn Register() -> Element {
     let user_id = Uuid::new_v4();
-    let username = "Clark Kent".to_string();
+    let username = "clark_kent".to_string();
     rsx! {
         PasskeyRegistration { user_id, username }
     }
@@ -17,14 +17,20 @@ fn PasskeyRegistration(user_id: Uuid, username: String) -> Element {
         let id = user_id;
         let name = username.clone();
         spawn(async move {
+            #[cfg(feature = "server")]
+            {
+                status.set(format!(
+                    "WebAuthn is only available in the browser: {name}, {id}"
+                ));
+            }
             #[cfg(not(feature = "server"))]
             {
-                use crate::api::auth::*;
-                use frontend::register_passkey_js;
+                use crate::api::registration::*;
+                use crate::frontend::register_passkey_js;
                 use webauthn_rs_proto::*;
 
                 status.set("Fetching challenge…".to_string());
-                let challenge = match crate::api::auth::start_registration(id, name).await {
+                let challenge = match crate::api::registration::start_registration(id, name).await {
                     Ok(c) => c,
                     Err(e) => {
                         status.set(format!("Server Error: {e}"));
@@ -52,31 +58,14 @@ fn PasskeyRegistration(user_id: Uuid, username: String) -> Element {
                     }
                 }
             }
-            #[cfg(feature = "server")]
-            status.set(format!(
-                "WebAuthn is only available in the browser: {id}, {name}"
-            ));
         });
     };
     rsx! {
         h1 { class: "title", "Register" }
-        h2 { class: "subtitle", "Register a Passkey" }
         button { class: "button",
             onclick: register,
             "Register Passkey"
         }
         p { "Status: {status}"}
-    }
-}
-
-#[cfg(not(feature = "server"))]
-mod frontend {
-    use wasm_bindgen::JsValue;
-    #[wasm_bindgen::prelude::wasm_bindgen(module = "/assets/webauthn.js")]
-    extern "C" {
-        #[wasm_bindgen::prelude::wasm_bindgen(catch)]
-        pub async fn register_passkey_js(
-            challenge_json: &str,
-        ) -> std::result::Result<JsValue, JsValue>;
     }
 }

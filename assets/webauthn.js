@@ -2,12 +2,21 @@
 export async function register_passkey_js(challenge_json) {
     try {
         const options = JSON.parse(challenge_json);
-        console.log("Requesting WebAuthn Prompt with options:", options);
-        const credential = await PublicKeyCredential.parseCreationOptionsFromJSON(options.publicKey);
-        const result = await navigator.credentials.create({publicKey: credential});
-        return JSON.stringify(result.toJSON());
+        const publicKey = await PublicKeyCredential.parseCreationOptionsFromJSON(options.publicKey);
+        const credential = await navigator.credentials.create({publicKey: publicKey});
+        return JSON.stringify(credential.toJSON());
     } catch (err) {
-        console.error("WebAuthn Error:", err.name, err.message);
+        throw new Error(err.name + ": " + err.message);
+    }
+}
+
+export async function authenticate_passkey_js(challenge_json) {
+    try {
+        const options = JSON.parse(challenge_json);
+        const publicKey = PublicKeyCredential.parseRequestOptionsFromJSON(options.publicKey);
+        const assertion = await navigator.credentials.get({publicKey});
+        return JSON.stringify(assertion.toJSON());
+    } catch (err) {
         throw new Error(err.name + ": " + err.message);
     }
 }
