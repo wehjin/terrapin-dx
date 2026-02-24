@@ -7,8 +7,9 @@ mod products;
 use products::Products;
 
 mod lots;
-use crate::components::pill::{BulmaColor, LabelPill};
+use crate::components::pill::LabelPill;
 use lots::Lots;
+use crate::bulma::BulmaColor;
 
 #[component]
 pub fn Session(session: ReadSignal<SessionState>) -> Element {

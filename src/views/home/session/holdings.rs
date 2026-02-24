@@ -1,4 +1,4 @@
-use crate::components::pill::{BulmaColor, LabelPill};
+use crate::components::pill::LabelPill;
 use crate::components::progress::ProgressIndicator;
 use crate::components::ProductLabel;
 use crate::data::market::Product;
@@ -9,6 +9,7 @@ use crate::api::session::SessionState;
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use std::collections::HashMap;
+use crate::bulma::BulmaColor;
 
 #[component]
 pub fn Holdings(session: ReadSignal<SessionState>) -> Element {

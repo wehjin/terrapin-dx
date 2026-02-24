@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use views::{Dev, Home, Login, Navbar, Register};
 
 pub mod api;
+pub mod bulma;
 mod components;
 pub mod data;
 mod views;

@@ -1,4 +1,4 @@
-use crate::components::pill::BulmaColor;
+use crate::bulma::BulmaColor;
 use dioxus::prelude::*;
 
 #[component]
