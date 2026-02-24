@@ -1,4 +1,6 @@
 use crate::api::registration::finish_registration;
+use crate::components::error::ErrorMessage;
+use crate::components::status::StatusMessage;
 use dioxus::prelude::*;
 use webauthn_rs_proto::RegisterPublicKeyCredential;
 
@@ -6,16 +8,16 @@ use webauthn_rs_proto::RegisterPublicKeyCredential;
 enum Status {
     Ready,
     FetchingChallenge,
-    ServerError(String),
     WaitingForBiometricPrompt,
     Success,
+    ServerError(String),
     VerificationFailed(String),
     BrowserError(String),
 }
 
 #[component]
 pub fn Register() -> Element {
-    let status = use_signal(|| Status::Ready);
+    let mut status = use_signal(|| Status::Ready);
     let mut username = use_signal(|| "".to_string());
     let mut register = use_action(move || async move {
         let username = username();
@@ -53,37 +55,16 @@ pub fn Register() -> Element {
                 Status::WaitingForBiometricPrompt => rsx!(StatusMessage{message: "Waiting for biometric prompt"}),
                 Status::Success => rsx!(StatusMessage { message: "Success!"}),
                 Status::ServerError(e) => rsx!(
-                    ErrorMessage{error_type: "Server Error", message: e, status: status.clone() }
+                    ErrorMessage{error_type: "Server Error", message: e, onretry: move |_| status.set(Status::Ready) }
                 ),
                 Status::VerificationFailed(e) => rsx!(
-                    ErrorMessage { error_type: "Verification Failed", message: e, status: status.clone()}
+                    ErrorMessage { error_type: "Verification Failed", message: e,onretry: move |_| status.set(Status::Ready)}
                 ),
                 Status::BrowserError(e) => rsx!(
-                    ErrorMessage { error_type: "Browser Error", message: e, status: status.clone()}
+                    ErrorMessage { error_type: "Browser Error", message: e, onretry: move |_| status.set(Status::Ready)}
                 ),
             }
         }
-    }
-}
-
-#[component]
-fn StatusMessage(message: String) -> Element {
-    rsx! {
-        article { class: "message",
-            div { class: "message-header", "Status" }
-            div { class: "message-body", "{message}" }
-        }
-    }
-}
-
-#[component]
-fn ErrorMessage(error_type: String, message: String, mut status: Signal<Status>) -> Element {
-    rsx! {
-        article { class: "message is-danger",
-            div { class: "message-header", "{error_type}" }
-            div { class: "message-body", "{message}" }
-        }
-        button { class: "button is-primary", autofocus: true, onclick: move |_| status.set(Status::Ready), "Try Again" }
     }
 }
 

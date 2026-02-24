@@ -1,4 +1,3 @@
-
 use dioxus::fullstack::{server, ServerFnError};
 use dioxus::prelude::*;
 use webauthn_rs_proto::*;
@@ -9,7 +8,11 @@ pub async fn start_authentication(
 ) -> Result<RequestChallengeResponse, ServerFnError> {
     use crate::backend::passkey::*;
     use tower_sessions::Session;
-
+    if !is_valid_username(&username) || !is_active_user(&username) {
+        return Err(ServerFnError::new(format!(
+            "Invalid username: '{username}'"
+        )));
+    }
     let session: Session = FullstackContext::extract().await?;
     let login = load_login(&username)
         .map_err(|e| ServerFnError::new(format!("Failed to load user: {e}")))?;
@@ -56,4 +59,3 @@ pub async fn finish_authentication(
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(())
 }
-

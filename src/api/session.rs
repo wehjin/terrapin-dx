@@ -11,21 +11,15 @@ pub struct SessionState {
 }
 
 #[server]
-pub async fn load_session(login_name: String) -> Result<SessionState, ServerFnError> {
-    use crate::backend;
+pub async fn fetch_session() -> Result<Option<SessionState>, ServerFnError> {
+    use crate::api::active_user;
+    use crate::backend::session::load_session;
 
-    let data_path = backend::user_data_path(&login_name);
-    if false == data_path.exists() {
-        return Err(ServerFnError::new(format!(
-            "Invalid login name: {}",
-            login_name
-        )));
+    match active_user().await? {
+        None => Ok(None),
+        Some(user) => {
+            let session = load_session(user.username).await?;
+            Ok(Some(session))
+        }
     }
-    let products = backend::read_products(&data_path)?;
-    let state = SessionState {
-        login_name,
-        products,
-        lots: backend::read_lots(&data_path)?,
-    };
-    Ok(state)
 }

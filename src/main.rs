@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use views::{Dev, Home, Login, Navbar, Register};
+use views::{Dev, Home, Navbar, Register, TestLogin};
 
 pub mod api;
 pub mod bulma;
@@ -27,7 +27,7 @@ enum Route {
     Register {},
 
     #[route("/login")]
-    Login {},
+    TestLogin {},
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");

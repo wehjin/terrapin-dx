@@ -1,8 +1,10 @@
 use crate::data::market::SharePrice;
 use dioxus::prelude::*;
 
+pub mod error;
 pub mod pill;
 pub mod progress;
+pub mod status;
 
 #[component]
 pub fn ProductLabel(symbol: String, name: String) -> Element {

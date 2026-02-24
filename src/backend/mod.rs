@@ -5,6 +5,7 @@ use dioxus::fullstack::ServerFnError;
 use std::path::{Path, PathBuf};
 
 pub mod passkey;
+pub mod session;
 
 pub fn read_products(data_path: &Path) -> Result<Vec<Product>, ServerFnError> {
     let path = data_path.join("products.csv");
