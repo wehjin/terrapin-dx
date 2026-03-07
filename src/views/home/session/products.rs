@@ -18,7 +18,7 @@ pub fn Products(session: ReadSignal<SessionState>) -> Element {
                     tr {
                         th { "Symbol" }
                         th { "Supply" }
-                        th { "Price ⁄ Unit" }
+                        th { "Share price" }
                     }
                 }
                 tbody {
