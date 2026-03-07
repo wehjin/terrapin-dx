@@ -6,27 +6,40 @@ use holdings::Holdings;
 mod products;
 use products::Products;
 
+mod net_worth;
+use net_worth::NetWorthPage;
+
 mod lots;
+use lots::Lots;
+
 use crate::bulma::BulmaColor;
 use crate::components::pill::LabelPill;
-use lots::Lots;
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+enum Tab {
+    Holdings,
+    Products,
+    Lots,
+    NetWorth,
+}
 
 #[component]
 pub fn Session(session: ReadSignal<SessionState>) -> Element {
     let tab = use_signal(|| Tab::Holdings);
     let user_name = session().login_name.to_string();
     rsx! {
-        div { class: "columns p-2",
-            aside { class: "column is-narrow menu",
-                SideMenu { user_name: user_name.clone(), active_tab: tab.clone() }
-            }
-            main { class: "column p-4",
-                match tab() {
-                    Tab::Holdings => rsx! (Holdings { session: session() }),
-                    Tab::Products => rsx! (Products { session: session() }),
-                    Tab::Lots => rsx!(Lots { session: session() })}
+            div { class: "columns p-2",
+                aside { class: "column is-narrow menu",
+                    SideMenu { user_name: user_name.clone(), active_tab: tab.clone() }
                 }
-
+                main { class: "column p-4",
+                    match tab() {
+                        Tab::Holdings => rsx! (Holdings { session: session() }),
+                        Tab::Products => rsx! (Products { session: session() }),
+                        Tab::Lots => rsx!(Lots { session: session() }),
+                        Tab::NetWorth => rsx!(NetWorthPage { session: session() }),
+                    }
+            }
         }
     }
 }
@@ -40,6 +53,7 @@ fn SideMenu(user_name: String, active_tab: Signal<Tab>) -> Element {
         p { class: "menu-label", "Views" }
         ul { class: "menu-list",
             TabListItem { tab: Tab::Holdings, active: active_tab }
+            TabListItem { tab: Tab::NetWorth, active: active_tab }
         }
         p { class: "menu-label", "Data"}
         ul { class: "menu-list",
@@ -48,12 +62,6 @@ fn SideMenu(user_name: String, active_tab: Signal<Tab>) -> Element {
         }
     }
 }
-#[derive(Debug, Copy, Clone, PartialEq)]
-enum Tab {
-    Holdings,
-    Products,
-    Lots,
-}
 
 #[component]
 fn TabListItem(tab: Tab, active: Signal<Tab>) -> Element {
@@ -61,6 +69,7 @@ fn TabListItem(tab: Tab, active: Signal<Tab>) -> Element {
         Tab::Holdings => "Holdings",
         Tab::Products => "Products",
         Tab::Lots => "Lots",
+        Tab::NetWorth => "Net Worth",
     };
     rsx! {
         li {
