@@ -7,14 +7,14 @@ mod products;
 use products::Products;
 
 mod lots;
+use crate::bulma::BulmaColor;
 use crate::components::pill::LabelPill;
 use lots::Lots;
-use crate::bulma::BulmaColor;
 
 #[component]
 pub fn Session(session: ReadSignal<SessionState>) -> Element {
     let tab = use_signal(|| Tab::Holdings);
-    let user_name = mask_middle_chars(&session().login_name);
+    let user_name = session().login_name.to_string();
     rsx! {
         div { class: "columns p-2",
             aside { class: "column is-narrow menu",
@@ -40,18 +40,6 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
 
         }
     }
-}
-
-fn mask_middle_chars(s: &str) -> String {
-    let mut chars: Vec<char> = s.chars().collect();
-
-    if chars.len() > 2 {
-        for i in 1..chars.len() - 1 {
-            chars[i] = '-';
-        }
-    }
-
-    chars.into_iter().collect()
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
