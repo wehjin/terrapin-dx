@@ -18,18 +18,7 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
     rsx! {
         div { class: "columns p-2",
             aside { class: "column is-narrow menu",
-                p { class: "menu-list",
-                    LabelPill { label: "User", value: user_name, color: BulmaColor::Light }
-                }
-                p { class: "menu-label", "Treasury" }
-                ul { class: "menu-list",
-                    TabListItem { tab: Tab::Holdings, active: tab }
-                    TabListItem { tab: Tab::Lots, active: tab }
-                }
-                p { class: "menu-label", "Market" }
-                ul { class: "menu-list",
-                    TabListItem { tab: Tab::Products, active: tab }
-                }
+                SideMenu { user_name: user_name.clone(), active_tab: tab.clone() }
             }
             main { class: "column p-4",
                 match tab() {
@@ -42,6 +31,23 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
     }
 }
 
+#[component]
+fn SideMenu(user_name: String, active_tab: Signal<Tab>) -> Element {
+    rsx! {
+        p { class: "menu-list",
+            LabelPill { label: "User", value: user_name, color: BulmaColor::Light }
+        }
+        p { class: "menu-label", "Views" }
+        ul { class: "menu-list",
+            TabListItem { tab: Tab::Holdings, active: active_tab }
+        }
+        p { class: "menu-label", "Data"}
+        ul { class: "menu-list",
+            TabListItem { tab: Tab::Lots, active: active_tab }
+            TabListItem { tab: Tab::Products, active: active_tab }
+        }
+    }
+}
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum Tab {
     Holdings,
