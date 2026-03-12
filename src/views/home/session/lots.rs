@@ -1,5 +1,7 @@
+use crate::api::query_lots;
 use crate::api::session::SessionState;
 use dioxus::prelude::*;
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 struct Editor {
@@ -34,7 +36,6 @@ pub fn Lots(session: ReadSignal<SessionState>) -> Element {
             }
         }),
         None => rsx!(LotsView {
-            session,
             on_edit: move |_| {
                 let mut products = session()
                     .products
@@ -44,7 +45,7 @@ pub fn Lots(session: ReadSignal<SessionState>) -> Element {
                 products.sort();
                 let editor = Editor::new(products);
                 editor_signal.set(Some(editor))
-            }
+            },
         }),
     }
 }
@@ -141,8 +142,38 @@ fn EditLot(editor: Editor, on_end: EventHandler<Ending>) -> Element {
 }
 
 #[component]
-fn LotsView(session: ReadSignal<SessionState>, on_edit: EventHandler<()>) -> Element {
-    let session = session();
+fn LotsView(on_edit: EventHandler<()>) -> Element {
+    let mut loader = use_loader(move || async move { query_lots().await })?;
+    let mut drop_lot = use_action(move |eid| async move {
+        use crate::api::drop_lot;
+        drop_lot(eid).await.and_then(|_| {
+            loader.restart();
+            Ok(())
+        })
+    });
+    let mut items = loader();
+    items.sort_by(|a, b| {
+        let by_account = a.0.account.cmp(&b.0.account);
+        if by_account == Ordering::Equal {
+            let by_product = a.0.product.cmp(&b.0.product);
+            if by_product == Ordering::Equal {
+                let by_time = a.0.time.cmp(&b.0.time);
+                if by_time == Ordering::Equal {
+                    if a.0.quantity < b.0.quantity {
+                        Ordering::Less
+                    } else {
+                        Ordering::Greater
+                    }
+                } else {
+                    by_time
+                }
+            } else {
+                by_product
+            }
+        } else {
+            by_account
+        }
+    });
     rsx! {
         div { class: "title", "Lots"}
         table { class: "table is-bordered is-striped is-hoverable is-narrow",
@@ -156,14 +187,26 @@ fn LotsView(session: ReadSignal<SessionState>, on_edit: EventHandler<()>) -> Ele
                 }
             }
             tbody {
-                for lot in session.ecs.lots().iter() {
+                for item in items.iter() {
                     tr {
-                        td { "{lot.account}" }
-                        td { "{lot.time}" }
-                        td { "{lot.product}" }
-                        td { "{lot.quantity}" }
-                        td { button { class: "button is-primary is-outlined is-small", "Edit" } }
+                        td { "{item.0.account}" }
+                        td { "{item.0.time}" }
+                        td { "{item.0.product}" }
+                        td { "{item.0.quantity}" }
+                        td {
+                            button { class: "button is-primary is-outlined is-small",
+                                onclick: {
+                                    let eid = item.to_eid();
+                                    move |_| {
+                                        let eid = eid.clone();
+                                        drop_lot.call(eid);
+                                    }
+                                },
+                                "Delete"
+                            }
+                        }
                     }
+
                 }
             }
         }
