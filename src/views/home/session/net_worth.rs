@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 #[component]
 pub fn NetWorthPage(session: ReadSignal<SessionState>) -> Element {
     let session = session();
-    let report = NetWorthReport::new(&session.lots.clone(), &session.products.clone());
+    let report = NetWorthReport::new(&session.ecs.lots(), &session.products.clone());
     let pre_tax = format_dollars(report.pre_tax);
     let as_of = format_date(report.as_of);
     let unpriced_products = report.unpriced_products.len();

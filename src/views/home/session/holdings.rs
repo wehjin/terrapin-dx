@@ -1,3 +1,5 @@
+use crate::api::session::SessionState;
+use crate::bulma::BulmaColor;
 use crate::components::pill::LabelPill;
 use crate::components::progress::ProgressIndicator;
 use crate::components::ProductLabel;
@@ -5,11 +7,9 @@ use crate::data::market::Product;
 use crate::data::ownership::Ownership;
 use crate::data::portfolio::Lot;
 use crate::data::term::{term_reports, TermReport};
-use crate::api::session::SessionState;
 use chrono::{DateTime, Utc};
 use dioxus::prelude::*;
 use std::collections::HashMap;
-use crate::bulma::BulmaColor;
 
 #[component]
 pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
@@ -21,7 +21,7 @@ pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
             .map(|product| (product.symbol().to_string(), product))
             .collect::<HashMap<String, Product>>()
     });
-    let mut holding_rows = holding_rows(session().lots, products_by_symbol(), Utc::now());
+    let mut holding_rows = holding_rows(session().ecs.lots(), products_by_symbol(), Utc::now());
     holding_rows.sort_by(|a, b| match (a.ownership, b.ownership) {
         (Some(_), None) => std::cmp::Ordering::Less,
         (None, Some(_)) => std::cmp::Ordering::Greater,

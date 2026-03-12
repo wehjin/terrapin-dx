@@ -1,5 +1,5 @@
+use crate::api::ecs::Ecs;
 use crate::data::market::Product;
-use crate::data::portfolio::Lot;
 use dioxus::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -7,9 +7,8 @@ use serde::{Deserialize, Serialize};
 pub struct SessionState {
     pub login_name: String,
     pub products: Vec<Product>,
-    pub lots: Vec<Lot>,
+    pub ecs: Ecs,
 }
-
 #[server]
 pub async fn fetch_session() -> Result<Option<SessionState>, ServerFnError> {
     use crate::api::active_user;

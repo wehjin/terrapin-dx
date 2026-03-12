@@ -156,7 +156,7 @@ fn LotsView(session: ReadSignal<SessionState>, on_edit: EventHandler<()>) -> Ele
                 }
             }
             tbody {
-                for lot in session.lots.iter() {
+                for lot in session.ecs.lots().iter() {
                     tr {
                         td { "{lot.account}" }
                         td { "{lot.time}" }

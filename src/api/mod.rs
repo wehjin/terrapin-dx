@@ -6,6 +6,7 @@ use uuid::Uuid;
 pub mod authentication;
 pub mod registration;
 pub mod session;
+pub mod ecs;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct User {
