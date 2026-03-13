@@ -12,8 +12,11 @@ use net_worth::NetWorthPage;
 mod lots;
 use lots::Lots;
 
-use crate::bulma::BulmaColor;
-use crate::components::pill::LabelPill;
+mod side_menu;
+use side_menu::SideMenu;
+
+mod import_prices;
+use import_prices::ImportPrices;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum Tab {
@@ -21,6 +24,7 @@ enum Tab {
     Products,
     Lots,
     NetWorth,
+    ImportPrices,
 }
 
 #[component]
@@ -38,45 +42,8 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
                         Tab::Products => rsx! (Products { session: session() }),
                         Tab::Lots => rsx!(Lots { session: session() }),
                         Tab::NetWorth => rsx!(NetWorthPage { session: session() }),
+                        Tab::ImportPrices => rsx!(ImportPrices {}),
                     }
-            }
-        }
-    }
-}
-
-#[component]
-fn SideMenu(user_name: String, active_tab: Signal<Tab>) -> Element {
-    rsx! {
-        p { class: "menu-list",
-            LabelPill { label: "User", value: user_name, color: BulmaColor::Light }
-        }
-        p { class: "menu-label", "Views" }
-        ul { class: "menu-list",
-            TabListItem { tab: Tab::Holdings, active: active_tab }
-            TabListItem { tab: Tab::NetWorth, active: active_tab }
-        }
-        p { class: "menu-label", "Data"}
-        ul { class: "menu-list",
-            TabListItem { tab: Tab::Lots, active: active_tab }
-            TabListItem { tab: Tab::Products, active: active_tab }
-        }
-    }
-}
-
-#[component]
-fn TabListItem(tab: Tab, active: Signal<Tab>) -> Element {
-    let label = match tab {
-        Tab::Holdings => "Holdings",
-        Tab::Products => "Products",
-        Tab::Lots => "Lots",
-        Tab::NetWorth => "Net Worth",
-    };
-    rsx! {
-        li {
-            a {
-                class: if tab == active() { "is-active" },
-                onclick: move |_| active.set(tab),
-                "{label}"
             }
         }
     }

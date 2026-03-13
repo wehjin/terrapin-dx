@@ -49,3 +49,9 @@ pub async fn drop_lot(eid: Eid) -> Result<(), ServerFnError> {
     info!("Dropped lot: {:?}", eid);
     Ok(())
 }
+
+#[server]
+pub async fn import_portfolio_csv(csv: String) -> Result<(), ServerFnError> {
+    info!("Importing prices: {:?}", csv);
+    Ok(())
+}
