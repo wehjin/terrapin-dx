@@ -1,4 +1,5 @@
 use crate::api::ecs::{Eid, LotItem};
+use crate::data::market::Product;
 use dioxus::fullstack::ServerFnError;
 use dioxus::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -29,11 +30,9 @@ pub async fn active_user() -> Result<Option<User>, ServerFnError> {
 
 #[server]
 pub async fn query_lots() -> Result<Vec<LotItem>, ServerFnError> {
-    use crate::api::session::fetch_session;
-    let session = fetch_session()
-        .await?
-        .ok_or(ServerFnError::new("No session"))?;
-    Ok(session.ecs.query_lots())
+    use crate::backend::require_ecs;
+    let ecs = require_ecs().await?;
+    Ok(ecs.query_lots())
 }
 
 #[server]
@@ -51,7 +50,22 @@ pub async fn drop_lot(eid: Eid) -> Result<(), ServerFnError> {
 }
 
 #[server]
-pub async fn import_portfolio_csv(csv: String) -> Result<(), ServerFnError> {
-    info!("Importing prices: {:?}", csv);
+pub async fn query_products() -> Result<Vec<Product>, ServerFnError> {
+    use crate::backend::require_ecs;
+    let ecs = require_ecs().await?;
+    Ok(ecs.query_products())
+}
+
+#[server]
+pub async fn update_product_prices(csv: String) -> Result<(), ServerFnError> {
+    use crate::backend::require_ecs;
+    use crate::data::yf;
+    info!("Importing prices");
+    let market_prices = yf::parse_market_prices(csv.as_bytes())
+        .map_err(|e| ServerFnError::new(format!("Failed to parse market prices: {}", e)))?;
+    let mut ecs = require_ecs().await?;
+    ecs.update_prices(market_prices)
+        .map_err(|e| ServerFnError::new(format!("Failed to update prices: {}", e)))?;
+    info!("Updated prices");
     Ok(())
 }

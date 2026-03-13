@@ -1,11 +1,16 @@
+use crate::api::query_products;
 use crate::components::{ProductLabel, SharePriceLabel};
-use crate::api::session::SessionState;
 use dioxus::prelude::*;
 
 #[component]
-pub fn Products(session: ReadSignal<SessionState>) -> Element {
-    let mut products = session().products.clone();
-    products.sort_by(|a, b| a.symbol().cmp(&b.symbol()));
+pub fn Products() -> Element {
+    let product_loader = use_loader(|| async move { query_products().await })?;
+    let products = use_memo(move || {
+        let mut products = product_loader().clone();
+
+        products.sort_by(|a, b| a.symbol().cmp(&b.symbol()));
+        products
+    });
     rsx! {
         div { class: "block level",
             div { class: "level-left",
@@ -22,7 +27,7 @@ pub fn Products(session: ReadSignal<SessionState>) -> Element {
                     }
                 }
                 tbody {
-                    for product in &products {
+                    for product in products() {
                         tr {
                             td { ProductLabel{ symbol: product.symbol(), name: product.name() } }
                             td { SupplyLabel{ supply: product.supply() } }

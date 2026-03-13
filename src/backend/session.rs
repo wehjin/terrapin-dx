@@ -1,6 +1,6 @@
+use crate::api::ecs::Ecs;
 use crate::api::session::SessionState;
 use crate::backend;
-use crate::api::ecs::Ecs;
 use dioxus::prelude::*;
 
 pub async fn load_session(login_name: String) -> Result<SessionState, ServerFnError> {
@@ -11,13 +11,8 @@ pub async fn load_session(login_name: String) -> Result<SessionState, ServerFnEr
             login_name
         )));
     }
-    let products = backend::read_products(&data_path)?;
     let ecs = Ecs::connect(&data_path)
         .map_err(|e| ServerFnError::new(format!("Failed to connect to ECS: {}", e)))?;
-    let state = SessionState {
-        login_name,
-        products,
-        ecs,
-    };
+    let state = SessionState { login_name, ecs };
     Ok(state)
 }

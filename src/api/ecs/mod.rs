@@ -1,5 +1,8 @@
-use crate::data::portfolio;
+use crate::data;
+use crate::data::market::Product;
 use crate::data::portfolio::Lot;
+use crate::data::yf::MarketPrice;
+use crate::data::{market, portfolio};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -21,12 +24,35 @@ impl LotItem {
 pub struct Ecs {
     pub data_path: PathBuf,
     pub lots: HashMap<Eid, Lot>,
+    pub products: Vec<Product>,
 }
 
 #[derive(Error, Debug)]
 pub enum DropError {
     #[error("Write error: {0}")]
-    WriteError(#[from] WriteLotsError),
+    WriteError(#[from] WriteError),
+}
+
+impl Ecs {
+    pub fn query_products(&self) -> Vec<Product> {
+        self.products.clone()
+    }
+    pub fn update_prices(&mut self, prices: impl AsRef<[MarketPrice]>) -> Result<(), DropError> {
+        let prices = prices.as_ref();
+        let prices = prices
+            .iter()
+            .map(|p| (p.symbol.clone(), p.share_price.clone()))
+            .collect::<HashMap<_, _>>();
+        let mut products = self.products.clone();
+        for product in products.iter_mut() {
+            if let Some(price) = prices.get(product.symbol()) {
+                product.set_share_price(price.clone());
+            }
+        }
+        write_products(products.clone(), &self.data_path)?;
+        self.products = products;
+        Ok(())
+    }
 }
 
 impl Ecs {
@@ -50,54 +76,75 @@ impl Ecs {
 
 #[derive(Error, Debug)]
 pub enum ConnectError {
-    #[error("Read error: {0}")]
-    ReadError(#[from] ReadLotsError),
+    #[error("Read lots error: {0}")]
+    ReadError(#[from] ReadError),
 }
 
 impl Ecs {
     pub fn connect(data_path: impl AsRef<Path>) -> Result<Self, ConnectError> {
         let data_path = data_path.as_ref();
         let lots = read_lots(data_path)?;
+        let products = read_products(data_path)?;
         Ok(Self {
             data_path: data_path.to_owned(),
             lots,
+            products,
         })
     }
 }
 
 #[derive(Error, Debug)]
-pub enum ReadLotsError {
+pub enum ReadError {
     #[error("IO error: {0}")]
     IOError(#[from] std::io::Error),
 
-    #[error("Parse error: {0}")]
-    ParseError(#[from] portfolio::ParseLotsError),
+    #[error("Portfolio parse error: {0}")]
+    DataParseError(#[from] data::ParseError),
 }
 
-fn read_lots(data_path: &Path) -> Result<HashMap<Eid, Lot>, ReadLotsError> {
-    let path = lots_data_path(data_path);
+#[derive(Error, Debug)]
+pub enum WriteError {
+    #[error("Format error: {0}")]
+    FormatError(#[from] data::FormatError),
+
+    #[error("IO error: {0}")]
+    IOError(#[from] std::io::Error),
+}
+
+fn read_products(data_path: &Path) -> Result<Vec<Product>, ReadError> {
+    let path = products_csv_path(data_path);
+    let bytes = std::fs::read(path)?;
+    let products = market::parse_products(&bytes)?;
+    Ok(products)
+}
+
+fn write_products(products: Vec<Product>, data_path: &Path) -> Result<(), WriteError> {
+    let path = products_csv_path(data_path);
+    let string = market::format_products(products)?;
+    std::fs::write(path, string.as_bytes())?;
+    Ok(())
+}
+
+fn read_lots(data_path: &Path) -> Result<HashMap<Eid, Lot>, ReadError> {
+    let path = lots_csv_path(data_path);
     let bytes = std::fs::read(path)?;
     let lots = portfolio::parse_lots(&bytes)?;
     Ok(lots)
 }
 
-fn lots_data_path(data_path: &Path) -> PathBuf {
-    let path = data_path.join("lots.csv");
-    path
-}
-
-#[derive(Error, Debug)]
-pub enum WriteLotsError {
-    #[error("Format error: {0}")]
-    FormatError(#[from] portfolio::FormatLotsError),
-
-    #[error("IO error: {0}")]
-    IOError(#[from] std::io::Error),
-}
-
-fn write_lots(lots: HashMap<Eid, Lot>, data_path: &Path) -> Result<(), WriteLotsError> {
-    let path = lots_data_path(data_path);
+fn write_lots(lots: HashMap<Eid, Lot>, data_path: &Path) -> Result<(), WriteError> {
+    let path = lots_csv_path(data_path);
     let string = portfolio::format_lots(lots)?;
     std::fs::write(path, string.as_bytes())?;
     Ok(())
+}
+
+fn products_csv_path(data_path: &Path) -> PathBuf {
+    let path = data_path.join("products.csv");
+    path
+}
+
+fn lots_csv_path(data_path: &Path) -> PathBuf {
+    let path = data_path.join("lots.csv");
+    path
 }

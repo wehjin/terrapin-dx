@@ -38,10 +38,10 @@ pub fn Session(session: ReadSignal<SessionState>) -> Element {
                 }
                 main { class: "column p-4",
                     match tab() {
-                        Tab::Holdings => rsx! (Holdings { session: session() }),
-                        Tab::Products => rsx! (Products { session: session() }),
-                        Tab::Lots => rsx!(Lots { session: session() }),
-                        Tab::NetWorth => rsx!(NetWorthPage { session: session() }),
+                        Tab::Holdings => rsx! (Holdings {}),
+                        Tab::Products => rsx! (Products {}),
+                        Tab::Lots => rsx!(Lots {}),
+                        Tab::NetWorth => rsx!(NetWorthPage {}),
                         Tab::ImportPrices => rsx!(ImportPrices {}),
                     }
             }

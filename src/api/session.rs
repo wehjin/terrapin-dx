@@ -1,12 +1,10 @@
 use crate::api::ecs::Ecs;
-use crate::data::market::Product;
 use dioxus::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SessionState {
     pub login_name: String,
-    pub products: Vec<Product>,
     pub ecs: Ecs,
 }
 #[server]

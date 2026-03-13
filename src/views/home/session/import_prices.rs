@@ -1,4 +1,4 @@
-use crate::api::import_portfolio_csv;
+use crate::api::update_product_prices;
 use dioxus::prelude::*;
 
 #[component]
@@ -6,7 +6,7 @@ pub fn ImportPrices() -> Element {
     let mut status = use_signal::<String>(|| "Ready".to_string());
     let mut upload = use_action(move |name, content| async move {
         status.set("Importing…".to_string());
-        match import_portfolio_csv(content).await {
+        match update_product_prices(content).await {
             Ok(_) => {
                 status.set(format!("Done importing '{}'", name));
             }
@@ -42,8 +42,8 @@ pub fn ImportPrices() -> Element {
                     }
                 }
                 span { class: "file-cta",
-                    span { class: "file-icon", i { class: "fas fa-upload" } }
-                    span { class: "file-label", "Portfolio CSV…"}
+                    span { class: "file-icon", "⬆️" }
+                    span { class: "file-label", "Choose Portfolio CSV…"}
                 }
             }
         }

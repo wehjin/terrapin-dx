@@ -1,4 +1,4 @@
-use crate::api::session::SessionState;
+use crate::api::{query_lots, query_products};
 use crate::bulma::BulmaColor;
 use crate::components::pill::LabelPill;
 use crate::components::progress::ProgressIndicator;
@@ -12,16 +12,22 @@ use dioxus::prelude::*;
 use std::collections::HashMap;
 
 #[component]
-pub fn Holdings(session: ReadSignal<SessionState>) -> Element {
+pub fn Holdings() -> Element {
+    let products = use_loader(|| async move { query_products().await })?;
     let products_by_symbol = use_memo(move || {
-        session()
-            .products
-            .clone()
+        products()
             .into_iter()
             .map(|product| (product.symbol().to_string(), product))
             .collect::<HashMap<String, Product>>()
     });
-    let mut holding_rows = holding_rows(session().ecs.lots(), products_by_symbol(), Utc::now());
+    let lot_items = use_loader(|| async move { query_lots().await })?;
+    let lots = use_memo(move || {
+        lot_items()
+            .into_iter()
+            .map(|item| item.0)
+            .collect::<Vec<_>>()
+    });
+    let mut holding_rows = holding_rows(lots(), products_by_symbol(), Utc::now());
     holding_rows.sort_by(|a, b| match (a.ownership, b.ownership) {
         (Some(_), None) => std::cmp::Ordering::Less,
         (None, Some(_)) => std::cmp::Ordering::Greater,

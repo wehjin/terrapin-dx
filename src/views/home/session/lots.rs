@@ -1,5 +1,4 @@
-use crate::api::query_lots;
-use crate::api::session::SessionState;
+use crate::api::{query_lots, query_products};
 use dioxus::prelude::*;
 use std::cmp::Ordering;
 
@@ -25,7 +24,8 @@ impl Editor {
 }
 
 #[component]
-pub fn Lots(session: ReadSignal<SessionState>) -> Element {
+pub fn Lots() -> Element {
+    let products = use_loader(|| async move { query_products().await })?;
     let mut editor_signal = use_signal(|| None::<Editor>);
     match editor_signal() {
         Some(editor) => rsx!(EditLot {
@@ -37,13 +37,12 @@ pub fn Lots(session: ReadSignal<SessionState>) -> Element {
         }),
         None => rsx!(LotsView {
             on_edit: move |_| {
-                let mut products = session()
-                    .products
+                let mut product_symbols = products()
                     .iter()
                     .map(|product| product.symbol().to_string())
                     .collect::<Vec<_>>();
-                products.sort();
-                let editor = Editor::new(products);
+                product_symbols.sort();
+                let editor = Editor::new(product_symbols);
                 editor_signal.set(Some(editor))
             },
         }),

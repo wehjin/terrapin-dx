@@ -1,11 +1,16 @@
-use crate::api::session::SessionState;
+use crate::api::{query_lots, query_products};
 use crate::data::net_worth::NetWorthReport;
 use dioxus::prelude::*;
 
 #[component]
-pub fn NetWorthPage(session: ReadSignal<SessionState>) -> Element {
-    let session = session();
-    let report = NetWorthReport::new(&session.ecs.lots(), &session.products.clone());
+pub fn NetWorthPage() -> Element {
+    let products = use_loader(|| async move { query_products().await })?;
+    let lots = use_loader(|| async move {
+        query_lots()
+            .await
+            .map(|items| items.into_iter().map(|item| item.0).collect::<Vec<_>>())
+    })?;
+    let report = NetWorthReport::new(&lots(), &products());
     let pre_tax = format_dollars(report.pre_tax);
     let as_of = format_date(report.as_of);
     let unpriced_products = report.unpriced_products.len();

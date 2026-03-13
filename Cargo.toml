@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 chrono = { version = "0.4.43", features = ["serde"] }
+chrono-tz = "0.10"
 csv = "1.4.0"
 dioxus = { version = "0.7.1", features = ["router", "fullstack"] }
 serde = { version = "1.0.228", features = ["derive"] }
