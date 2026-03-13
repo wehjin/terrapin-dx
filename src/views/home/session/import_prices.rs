@@ -4,7 +4,18 @@ use dioxus::prelude::*;
 #[component]
 pub fn ImportPrices() -> Element {
     let mut status = use_signal::<String>(|| "Ready".to_string());
-
+    let mut upload = use_action(move |name, content| async move {
+        status.set("Importing…".to_string());
+        match import_portfolio_csv(content).await {
+            Ok(_) => {
+                status.set(format!("Done importing '{}'", name));
+            }
+            Err(e) => {
+                status.set(format!("Failed to import '{}': {}", name, e));
+            }
+        };
+        Ok::<(), anyhow::Error>(())
+    });
     rsx! {
         h1 { class: "title", "Import Prices"}
         h2 { class: "subtitle", "Update prices from portfolio CSV"}
@@ -24,16 +35,7 @@ pub fn ImportPrices() -> Element {
                             if let Some(file) = file_data.first() {
                                 if let Ok(file_content) = file.read_string().await {
                                     let file_name = file.name();
-                                    status.set("Importing…".to_string());
-                                    let import_result = import_portfolio_csv(file_content).await;
-                                    match import_result {
-                                        Ok(_) => {
-                                            status.set(format!("Done importing '{}'", file_name));
-                                        },
-                                        Err(e) => {
-                                            status.set(format!("Failed to import '{}': {}", file_name, e));
-                                        },
-                                    };
+                                    upload.call(file_name, file_content);
                                 }
                             }
                         }
