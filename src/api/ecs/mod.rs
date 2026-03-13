@@ -45,7 +45,13 @@ impl Ecs {
             .collect::<HashMap<_, _>>();
         let mut products = self.products.clone();
         for product in products.iter_mut() {
-            if let Some(price) = prices.get(product.symbol()) {
+            let symbol = product.symbol();
+            let price = if let Some(price) = prices.get(symbol) {
+                Some(price.clone())
+            } else {
+                prices.get(&format!("{}-USD", symbol)).cloned()
+            };
+            if let Some(price) = price {
                 product.set_share_price(price.clone());
             }
         }
